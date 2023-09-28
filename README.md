@@ -1,5 +1,5 @@
 real
-
+also hey this isnt a place to store your code henry
 
 # Nuxt Setup
 
