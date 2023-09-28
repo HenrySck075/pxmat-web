@@ -115,7 +115,7 @@
       </v-sheet>
       <div>
         <template v-for="i in images">
-          <v-img :src=proxyAssetUrl(i.urls.small) max-height=1000px width=98% id=illustImg class="pt-2 pb-2"></v-img>
+          <v-img :src=proxyAssetUrl(i.urls.small) max-height=1000px width=98% id=illustImg class="pt-2 pb-2" @click="(illustData.pageCount!=1 && !multiimaged) ? loadAllPage() : null"></v-img>
         </template>
         <v-btn 
           style="margin-left: auto; margin-right: auto; width: 100px; background-color: black" 
@@ -162,7 +162,9 @@
           </v-list-item>
         </v-card-actions>
       </v-card>
-      <v-spacer></v-spacer>
+      <div color="background" class="d-flex align-center w-100">
+        <p class="text-center">Sending comments won't be available because i said so :troll_king:</p>
+      </div>
       <v-sheet rounded>
         <v-slide-group center-active show-arrows id="userIllusts">
           <v-slide-group-item>

@@ -24,7 +24,7 @@ export default defineNuxtConfig({
             }
           }
         },
-        // enableLogger: false
+        enableLogger: false
       },
       {
         target: "https://i.pximg.net",
@@ -38,7 +38,7 @@ export default defineNuxtConfig({
             }
           }
         },
-        // enableLogger: false
+        enableLogger: false
       }
     ]
   },

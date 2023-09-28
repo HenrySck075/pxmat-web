@@ -46,7 +46,7 @@
 
       <v-navigation-drawer
         v-model="drawer"
-        temporary
+        :permanent="!display.mobile.value"
       >
         <v-list>
           <v-list-item title="Home" value="h" @click="navigateTo('/')"/>
@@ -72,10 +72,12 @@
   let group = ref(null)
   let searchText = ref("")
   let searchBoxClosed = ref(true)
+  import {useTheme, useDisplay} from "vuetify"
+
+  const display = useDisplay()
 
   watch(group, (n,o) => {drawer.value = false})
 
-  import {useTheme} from "vuetify"
   const theme = useTheme() 
   function toggleTheme() {
     theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
