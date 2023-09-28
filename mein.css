@@ -1,0 +1,13 @@
+a {
+  text-decoration: none;
+}
+
+#illustImg {
+  transition: all 0.4s
+}
+.v-input.expanding-search {
+	transition: max-width 0.4s
+}
+.v-input__slot.closed {
+	max-width: 70px
+}
