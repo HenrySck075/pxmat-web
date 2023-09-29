@@ -12,6 +12,7 @@
   "devDependencies": {
     "@mdi/font": "^7.2.96",
     "@nuxt/devtools": "latest",
+    "jszip": "^3.10.1",
     "nuxt": "^3.7.3",
     "nuxt-proxy-request": "^1.6.1"
   },

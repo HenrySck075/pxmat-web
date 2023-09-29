@@ -11,6 +11,9 @@ export default defineNuxtPlugin(nuxtApp => {
     theme: {
       defaultTheme: "dark"
     },
+    options: {
+      customProperties: true
+    },
     components,
     directives,
   })
