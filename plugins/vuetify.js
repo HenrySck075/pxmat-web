@@ -4,10 +4,11 @@ import * as directives from 'vuetify/directives'
 import { md3 } from 'vuetify/blueprints'
 import '@mdi/font/css/materialdesignicons.css'
 
+
 export default defineNuxtPlugin(nuxtApp => {
   const vuetify = createVuetify({
     blueprint: md3,
-    ssr: true,
+    ssr: false,
     theme: {
       defaultTheme: "dark"
     },

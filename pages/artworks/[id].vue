@@ -111,7 +111,7 @@
   loadOld()
 
   let mainStyle = ref("0")
-  let imgvStyle = ref("100vh")
+  let imgvStyle = ref("120vh")
   let easing = ref("cubic-bezier(0.16, 1, 0.13, 1)")
   let fullImage = ref("") // it does count
   let fullImageLazy = ref("/facebook_male.png") // it does count
@@ -119,25 +119,28 @@
   let animDir = ref("normal")
 
   function openImage(img, idx) {
-    console.log(img)
+    if (illustData.illustType === 2) return
     animDir.value = "normal"
     fullImage.value = proxyAssetUrl(img.urls.original)
     fullImageLazy.value = proxyAssetUrl(img.urls.small)
     mainStyle.value = "-20vh"
-    imgvStyle.value = "6vh"
-    history.replaceState({},"",route.fullPath+(route.fullPath.includes("?")?"&":"?") +"view="+idx)
+    imgvStyle.value = "0vh"
+    if (route.query.view === undefined) history.replaceState({},"",route.fullPath+(route.fullPath.includes("?")?"&":"?")+"view="+idx)
   }
+
   function closeImage() {
+    console.log("send help")
     animDir.value = "reverse"
     mainStyle.value = "0vh"
-    imgvStyle.value = "100vh"
+    imgvStyle.value = "120vh"
+    history.replaceState({},"",route.fullPath.replace((route.fullPath.includes("?")?"&":"?") +"view="+route.query.view), "")
   }
 
   function openImageP() {
-    let h = route.params.view
+    let h = route.query.view
     if (h !== undefined) {
       if (+h > 0) {loadAllPage()}
-      openImage(images.value[+h])
+      openImage(images.value[+h], +h)
     }
   }
 
@@ -151,6 +154,7 @@
 
   const callbackhell = ({data: lo, frames: f, canvasContext: ctx}) => {
     const zip = new (require("jszip"))
+    loadUgoira.value = true
     zip.loadAsync(lo).then(z=>{
       let dur = 0
       for (let i of frames) {dur+=i.delay}
@@ -174,12 +178,12 @@
     })
   }
 
-  if (illustData.illustTyoe !== 2) {openImageP()}
-</script>
+  </script>
 
 <template>
   <div>
-    <div class="t" id="imgv" :style="{position:'fixed', zIndex:'5', top: imgvStyle, left:'0', 'transition-timing-function': easing, height: '100%', width: '100%'}">
+    <!--appbar zindex is 1006-->
+    <div class="t" id="imgv" :style="{position:'fixed', zIndex:'1007', top: imgvStyle, left:'0', 'transition-timing-function': easing, height: '100%', width: '100%'}">
       <v-icon icon="mdi-arrow-left" size="x-large" style="z-index: 10" @click="closeImage()"></v-icon>
       <v-img style="position: absolute; left:auto; top:0" :src=fullImage :lazy-src="fullImageLazy" height="99%" width="100%" :eager="true"></v-img>
     </div>
@@ -193,9 +197,9 @@
         </v-sheet>
         <div>
           <template v-for="(i, idx) in images">
-            <v-img v-if="!loadUgoira" :src=proxyAssetUrl(i.urls.small) max-height=1000px width=98% id=illustImg class="pt-2 pb-2" @click="(illustData.pageCount!=1 && !multiimaged) ? loadAllPage() : openImage(i, idx)" @load="(illustData.illustType === 2) ? loadUgoiraF() : null"></v-img>
+            <v-img v-show="!loadUgoira" :src=proxyAssetUrl(i.urls.small) max-height=1000px width=98% id=illustImg class="pt-2 pb-2" @click="(illustData.pageCount!=1 && !multiimaged) ? loadAllPage() : openImage(i, idx)" @load="(illustData.illustType === 2) ? loadUgoiraF() : openImageP()"></v-img>
           </template>
-          <canvas v-if="loadUgoira" class="pt-2 pb-2" style="max-height: 1000px" @show="loadUgoiraF(this.$el)"></canvas>
+          <canvas v-show="loadUgoira" class="pt-2 pb-2" style="max-height: 1000px" @show="loadUgoiraF(this.$el)"></canvas>
 
           <v-btn 
             style="margin-left: auto; margin-right: auto; width: 100px; background-color: black" 
@@ -214,7 +218,7 @@
         <v-sheet rounded>
           <p class="text-h5 ma-4">{{illustData.title}}</p>
           <p class="font-weight-light ma-2"><span v-html=illustData.description /></p>
-          <div class="d-flex flex-wrap">
+          <div class="d-flex flex-wrap pt-4 pb-4">
             <div v-for="i in illustData.tags.tags">
               <NuxtLink :to="'/tags/'+i.tag+'/artworks'+(illustData.xRestrict ? '?mode=r18' : '')" class="ma-2">
                 #{{i.tag}}
@@ -254,7 +258,7 @@
               </v-card>
             </v-slide-group-item>
             <v-slide-group-item v-for="(illust, k) in userIllustsData">
-              <Illust :data=illust :interact="k!=id"/>
+              <Illust :data=illust :interact="k!=id" compact/>
             </v-slide-group-item>
             <v-slide-group-item>
               <v-card class="d-flex justify-center align-center" @click="loadOld()">
@@ -267,10 +271,13 @@
       </div>
       <div class="pt-4">
         <Label>Related works</Label>
-        <div class="d-flex flex-wrap justify-start" @scroll="onScroll">
+        <div class="d-flex flex-wrap justify-start" @scroll="onScroll" v-if="related">
           <template v-for="i in related">
             <Illust :data="i" />
           </template>
+        </div>
+        <div class="d-flex justify-center align-center" style="height: 80vh; width: 100vw" v-else>
+          <p class="font-weight-bold">Nothing :(</p>
         </div>
       </div>
     </div>

@@ -41,38 +41,6 @@ bun run dev
 
 ## Production
 
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm run build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm run preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
 
 
@@ -107,5 +75,8 @@ after setting cookies, refresh
 - h
 
 # Known issues
-- Pages that uses query (`/tags/[tag]`, `/bookmarks`, ...) does not reload if it's entered before even with different query values
+- Pages that uses query (`/tags/[tag]`, `/bookmarks`, ...) does not reload if it's entered before even with different query values (e.g. Search filters)
+- Going back in history after opening illust in full view returns to the previous artwork as the history stack is replaced (keep it like that) 
++ Solution: handle back button
+- Avatars doesn't load for some reason, even `lazy-src`
 

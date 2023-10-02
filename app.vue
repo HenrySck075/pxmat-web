@@ -55,22 +55,22 @@
       </v-navigation-drawer>
 
       <v-main>
-        <NuxtErrorBoundary>
-          <NuxtPage :keepalive="{}"/>
-          <template #error="{ error }">
-            <div>
-              {{error.message}}
-            </div>
-          </template>
-        </NuxtErrorBoundary>
+        <NuxtPage :keepalive="{}"/>
+        <v-sheet>
+          <p class="text-center">🄯 2023 HenrySck075. Flip the copyleft when you have the rights</p>
+          <NuxtLink href="https://www.pixiv.net/en"><p class="text-center">Not affiliated with pixiv</p></NuxtLink>
+        </v-sheet>
       </v-main>
     </v-layout>
   </v-sheet>
 </template>
 <script setup>
+  const r = useRoute()
   let drawer = ref(false)
   let group = ref(null)
-  let searchText = ref("")
+  let n = r.path.split("/tags/")
+  // keep this as ref("") and modifu it on pages/tags/[tag].vue
+  let searchText = ref(n.length == 1 ? "" : decodeURI(n[1].match(/(.*)[\/]/g)[0].replace("/","")))
   let searchBoxClosed = ref(true)
   import {useTheme, useDisplay} from "vuetify"
 

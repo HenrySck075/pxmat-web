@@ -125,7 +125,7 @@
         <div>
           <Label>Ongoing contests</Label>
           <div v-for="i in homePages.contestOngoing" style="width: 100%">
-            <v-card :to="i.url">
+            <v-card :href="i.url" target="_blank">
               <v-card-actions>
                 <v-list-item class="w-100">
                   <template v-slot:prepend>
@@ -140,9 +140,9 @@
         <!--Recommended tags--> 
         <div>
           <Label>Popular tags</Label>
-          <v-slide-group>
+          <v-slide-group show-arrows>
             <v-slide-group-item v-for="i in homePages.tags">
-              <v-img max-height="144px" :src="proxyAssetUrl(homeIllustData[i.ids[0]].urls['540x540'])" style="position: relative" @click="navigateTo('/tags/'+i.tag)">
+              <v-img :src="proxyAssetUrl(homeIllustData[i.ids[0]].urls['540x540'])" style="position: relative" @click="navigateTo('/tags/'+i.tag)" eager>
                 <p class="pl-2 pr-2 pb-2" style="position: absolute; bottom: 1px">{{i.tag}}</p>
               </v-img>
             </v-slide-group-item>
@@ -152,11 +152,11 @@
         <div class="pt-2">
           <Label>Recommended users</Label>
           <v-slide-group>
-            <v-slide-group-item v-for="i in homePages.recommendedUser" width="391.993px">
-              <v-card>
+            <v-slide-group-item v-for="i in homePages.recommendedUser" >
+              <v-card width="391.993px">
                 <div class="d-flex">
                   <template v-for="j in i.illustIds">
-                    <v-img width="130.664px" :aspect-ratio="1" :src=homeIllustData[j].url></v-img>
+                    <v-img width="130.664px" eager :aspect-ratio="1" :src=homeIllustData[j].url></v-img>
                   </template>
                 </div>
                 <v-card-actions>

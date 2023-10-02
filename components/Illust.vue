@@ -1,19 +1,17 @@
 <template>
-  <v-card elevation="2" width="200px" class="ma-6">
+  <v-card elevation="2" width="200px" :class="!compact?'ma-6':''">
     <v-img :src=proxyAssetUrl(data.url) max-height="400px" @click="interact ? this.$router.push({path:'/artworks/'+data.id}) : null" style="position: relative">
+      <!--pixiv will never rank nsfw so dont worry-->
       <v-chip style="position: absolute; top:5px; left: 12px; background-color: red; border-radius: 4px" class="pa-2" v-if="data.xRestrict">R-18</v-chip>
-      <v-chip style="position: absolute; top:5px; left: 12px; background-color: #D6BA49; border-radius: 50%" class="pa-2" v-if="ranking==1">{{ranking}}</v-chip>
-      <v-chip style="position: absolute; top:5px; left: 12px; background-color: #858585; border-radius: 50%" class="pa-2" v-if="ranking==2">{{ranking}}</v-chip>
-      <v-chip style="position: absolute; top:5px; left: 12px; background-color: #C8A17E; border-radius: 50%" class="pa-2" v-if="ranking==3">{{ranking}}</v-chip>
-      <v-chip style="position: absolute; top:5px; left: 12px; background-color: rgba(133,133,133,0.5); border-radius: 50%" class="pa-2" v-if="ranking>3">{{ranking}}</v-chip>
+      <v-chip :style="{position: 'absolute', top: '5px', left: '12px', backgroundColor: ranking==1 ? '#D6BA49' : ranking==2 ? '#858585' : ranking==3 ? '#C8A17E' : 'rgba(133,133,133,0.5)', borderRadius: '50%'}" class="pa-2" v-if="ranking">{{ranking}}</v-chip>
     </v-img>
     <v-card-title v-if="!compact">{{data.title}}</v-card-title>
     <v-card-actions v-if="!compact">
       <v-list-item class="w-100">        
-        <template v-slot:prepend>
-          <v-img :src=proxyAssetUrl(data.profileImageUrl) aspect-ratio="1" lazy-src="/facebook_male.png"></v-img>
-        </template>
-        <v-list-item-title>{{data.userName}}</v-list-item-title>
+        <div class="d-flex justify-start">
+          <NuxtLink><v-img :src=proxyAssetUrl(data.profileImageUrl) aspect-ratio="1" max-height=30px lazy-src="/facebook_male.png"></v-img></NuxtLink>
+          <span>{{data.userName}}</span>
+        </div>
          <template v-slot:append>
           <div class="justify-self-end">
             <v-btn icon="mdi-heart-outline" v-if="!followed" @click="toggleFollow(this)"></v-btn>
