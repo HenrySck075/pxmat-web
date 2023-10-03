@@ -6,10 +6,10 @@
   function trim(s,c) {
     c = c.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
     if (c === "\\") c = "\\\\";
-      return s.replace(new RegExp(
-        "^[" + c + "]+|[" + c + "]+$", "g"
-      ), "");
-    }
+    return s.replace(new RegExp(
+      "^[" + c + "]+|[" + c + "]+$", "g"
+    ), "");
+  }
       
   const proxyAssetUrl = (a) => {
     if (a === undefined) return "/facebook_male.png"
@@ -58,7 +58,7 @@
         <v-tab :value="i" class="text-none" @click="sub(i)">{{tabs[i]}}</v-tab>
       </template>
     </v-tabs>
-    <transition :name="tname" @before-enter="()=>{transitioning.value = true}" @after-leave="()=>{transitioning.value = false}">
+    <transition :name="tname" @before-enter="()=>{transitioning = true}" @after-leave="()=>{transitioning = false}">
       <div>
         <NuxtPage />
       </div>

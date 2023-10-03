@@ -34,7 +34,7 @@
             <v-btn v-bind="props" variant="text" icon="mdi-dots-vertical"></v-btn>
           </template>
           <v-list>
-            <v-list-item @click="this.$router.app.refresh()">
+            <v-list-item @click="this.$nuxt.refresh()">
               <v-list-item-title>Refresh page</v-list-item-title>
             </v-list-item>
             <v-list-item @click="toggleTheme()">
@@ -49,7 +49,14 @@
         :permanent="!display.mobile.value"
       >
         <v-list>
-          <v-list-item title="Home" value="h" @click="navigateTo('/')"/>
+          <v-list-subheader title="Home"/>
+          <v-list-item title="Illustrations" value="h" @click="navigateTo('/home')"/>
+          <v-list-item title="Manga" value="h" @click="navigateTo('/home/manga')"/>
+          <v-list-item title="Novels" value="h" @click="navigateTo('/home/novels')"/>
+
+          <v-list-item type="divider" />
+
+          <v-list-subheader title="Discovery" />
           <v-list-item title="Following" value="f" @click="navigateTo('/bookmarks/illust')"/>
         </v-list>
       </v-navigation-drawer>
@@ -57,7 +64,7 @@
       <v-main>
         <NuxtPage :keepalive="{}"/>
         <v-sheet>
-          <p class="text-center">🄯 2023 HenrySck075. Flip the copyleft when you have the rights</p>
+          <p class="text-center">🄯 2023 HenrySck075. {{AllWrongsReserved}}</p>
           <NuxtLink href="https://www.pixiv.net/en"><p class="text-center">Not affiliated with pixiv</p></NuxtLink>
         </v-sheet>
       </v-main>
@@ -75,6 +82,15 @@
   import {useTheme, useDisplay} from "vuetify"
 
   const display = useDisplay()
+
+  const AllWrongsReserved = (()=>{
+    let h = [
+      "Flip the copyleft when you have the rights",
+      "3/4 of pixiv is literally a php site it doesnt even transition",
+      "It's Geometry Dash 2.2 month wahoooo (October)"
+    ]
+    return h[Math.floor(Math.random()*h.length)]
+  })()
 
   watch(group, (n,o) => {drawer.value = false})
 
