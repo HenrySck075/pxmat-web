@@ -10,10 +10,12 @@
     <v-card-title v-if="!compact">{{data.title}}</v-card-title>
     <v-card-actions v-if="!compact">
       <v-list-item class="w-100">        
-        <div class="d-flex justify-start">
-          <NuxtLink><v-img :src=proxyAssetUrl(data.profileImageUrl) aspect-ratio="1" max-height=30px lazy-src="/facebook_male.png"></v-img></NuxtLink>
-          <span>{{data.userName}}</span>
-        </div>
+        <NuxtLink :to="'/users/'+data.userId" class=uncolored-anchor> <!--help im in rush-->
+          <div class="d-flex justify-start">
+            <v-img :src=proxyAssetUrl(data.profileImageUrl) :aspect-ratio="1" height=30px lazy-src="/facebook_male.png"></v-img>
+            <span>{{data.userName}}</span>
+          </div>
+        </NuxtLink>
          <template v-slot:append>
           <div class="justify-self-end">
             <v-btn icon="mdi-heart-outline" v-if="!followed" @click="toggleFollow(this)"></v-btn>
@@ -48,7 +50,7 @@
         return a.replace("https:\/\/i.pximg.net","/pxassets")
       },
       followed: false,
-      toggleFollow(elm) {
+      toggleFollow: (elm) => {
         useFetch("/pxapi/illusts/bookmarks/add",{
           method: "POST",
           body: JSON.stringify({

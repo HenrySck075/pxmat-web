@@ -39,6 +39,20 @@ export default defineNuxtConfig({
           }
         },
         enableLogger: false
+      },
+      {
+        target: "https://s.pximg.net",
+        pathFilter: ["/pxsprites/**"],
+        pathRewrite: {"(.*)/pxsprites":""},
+        configureProxyRequest: (e)=>{
+          return {
+            headers:{
+              'Upgrade-Insecure-Requests':'1',
+              'Referer': 'https://s.pximg.net'
+            }
+          }
+        },
+        enableLogger: false
       }
     ]
   },

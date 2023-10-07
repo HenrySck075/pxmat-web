@@ -50,9 +50,9 @@
       >
         <v-list>
           <v-list-subheader title="Home"/>
-          <v-list-item title="Illustrations" value="h" @click="navigateTo('/home')"/>
-          <v-list-item title="Manga" value="h" @click="navigateTo('/home/manga')"/>
-          <v-list-item title="Novels" value="h" @click="navigateTo('/home/novels')"/>
+          <v-list-item title="Illustrations" value="a" @click="navigateTo('/home')"/>
+          <v-list-item title="Manga" value="b" @click="navigateTo('/home/manga')"/>
+          <v-list-item title="Novels" value="c" @click="navigateTo('/home/novels')"/>
 
           <v-list-item type="divider" />
 
@@ -64,7 +64,7 @@
       <v-main>
         <NuxtPage :keepalive="{}"/>
         <v-sheet>
-          <p class="text-center">🄯 2023 HenrySck075. {{AllWrongsReserved}}</p>
+          <p class="text-center"><v-icon icon="mdi-copyleft" /> 2023 HenrySck075. {{AllWrongsReserved}}</p>
           <NuxtLink href="https://www.pixiv.net/en"><p class="text-center">Not affiliated with pixiv</p></NuxtLink>
         </v-sheet>
       </v-main>
@@ -98,14 +98,18 @@
   function toggleTheme() {
     theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
   }
+
 </script>
 <style>
-.page-enter-active,
-.page-leave-active {
-  transition: all 0.3s;
-}
-.page-enter-from,
-.page-leave-to {
-  opacity: 0;
-}
+  .page-enter-active,
+  .page-leave-active {
+    transition: all 0.3s;
+  }
+  .page-enter-from,
+  .page-leave-to {
+    opacity: 0;
+  }
+  .uncolored-anchor {
+    color: white
+  }
 </style>
