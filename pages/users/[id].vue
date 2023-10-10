@@ -1,28 +1,49 @@
 <script setup>
   const r = useRoute()
+  const rr = useRouter()
   const id = r.params.id
 
-  const resp = await useFetch("/pxapi/user/"+id+"?full=1&lang=en").then(({data:pl})=>pl.value.body)
-  const works = await useFetch("/pxapi/user/"+id+"/profile/all?lang=en").then(({data:pl})=>pl.value.body)
+  const resp = await usePixivFetch("/user/"+id+"?full=1&lang=en")
+  const works = await usePixivFetch("/user/"+id+"/profile/top?lang=en") // not really just checking if user have a type of work
+
+  import nuxtStorage from "nuxt-storage"
+
+  nuxtStorage.localStorage.setData('userWorks', works);
+
+  rr.afterEach((to, from, fail) => {
+    if (!to.path.startsWith("/users/") && !fail) nuxtStorage.localStorage.removeItem("userWorks")
+  })
+
 
   const proxyURL=useProxyURL
+  function trim(s,c) {
+    c = c.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+    if (c === "\\") c = "\\\\";
+    return s.replace(new RegExp(
+      "^[" + c + "]+|[" + c + "]+$", "g"
+    ), "");
+  }
 
   useHead({
     title: resp.name+" [pixiv Material Design Concept]"
   })
+  const p = trim(r.fullPath.split("/").slice(-1)[0],"/")
 
   const baseUrl="/users/"+id
-  
+  let tab = ref(p ? (p) : "main")
+
+  const tabs = [
+    "main", "illustrations", "manga", "novels", "bookmarks"
+  ]
+
+  function sub(path) {
+    const dest = baseUrl+"/"+(path=="main"?"":(path=="bookmarks"?"bookmarks/artworks":path))
+    if (dest == r.path) return
+    navigateTo(dest)
+  }
+
+ 
   console.log(+works.manga)
-  
-  const page = ref()
-  let h = watch(page, async () => {
-    if (page.value.pageRef?.illustCount !== undefined) {
-      page.value.pageRef.illustCount = Object.keys(works.illusts).length
-      the()
-    }
-  })
-  function the() {h()}
 
 </script>
 
@@ -34,7 +55,10 @@
       <div>
         <v-avatar :image=proxyURL(resp.image) style="position: absolute; width: 120px; height: 120px; transform: translateY(-80px)" class="ml-7"></v-avatar>
         <div style="transform: translateX(170px)" id="spacing">
-          <p class="font-weight-bold text-h5">{{resp.name}}</p>
+          <span class="font-weight-bold text-h5">{{resp.name}}</span>
+          <v-spacer></v-spacer>
+          <v-btn class="text-none">Follow</v-btn>
+          <span>          </span>
           <span class="font-weight-bold text-subtitle-1" style="color: gray">{{resp.following}}</span><span style="color: gray" class="text-subtitle-1"> following</span>
           <div class="pt-4 d-flex">
             <NuxtLink :to="resp.webpage" class="uncolored-anchor" v-if=resp.webpage>
@@ -49,13 +73,15 @@
           </div>
         </div>
       </div>
-      <v-tabs>
+      <v-tabs v-model=tab>
         <v-tab value="main" :to="baseUrl">Home</v-tab>
-        <v-tab value="artworks" :to="baseUrl+'/artworks'">Illustrations</v-tab>
+        <v-tab value="illustrations" :to="baseUrl+'/illustrations'">Illustrations</v-tab>
         <v-tab value="manga" :to="baseUrl+'/manga'" v-if="+works.manga">Manga</v-tab>
         <v-tab value="novels" :to="baseUrl+'/novels'" v-if="+works.novels">Novels</v-tab>
       </v-tabs>
-      <NuxtPage ref="page" class="pt-6"/>
+      <transition> 
+        <NuxtPage ref="page" class="pt-6"/>
+      </transition>
     </v-sheet>
   </div>
 </template>

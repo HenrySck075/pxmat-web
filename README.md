@@ -48,7 +48,9 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 - You need to set your pixiv instance's cookies to the site for the followimg features to work:
 + everything
 
-here's how you set your cookies after obtaining it: 
+UPDATE: cookies are now prompted if required cookie(s) is not set so use that
+
+here's how you previously set your cookies after obtaining it: 
 ```
 <script setup>
   let cookie = {}

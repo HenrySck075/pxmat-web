@@ -2,15 +2,17 @@
   useHead({
     title: "Online community for artists [pixiv Material Design Concept]"
   })
+  
+  import nuxtStorage from "nuxt-storage"
 
   const route = useRoute()
 
-  const {data:h} = await useFetch("/pxapi/top/illust?mode=all&lang=en&version=3293428791d78bc27e839167e71ceabcb899355e", {
+  const resp = await usePixivFetch("/pxapi/top/illust?mode=all&lang=en&version=3293428791d78bc27e839167e71ceabcb899355e", {
     method: "GET",
     headers: {"Referer": "https://www.pixiv.net/en"}
   })
 
-  const resp = h._rawValue.body
+
   const homePages = resp.page
 
   const homeIllustData = (() => {
@@ -28,6 +30,21 @@
     }
     return h
   })()
+
+  nuxtStorage.localStorage.setData("requests", (()=>{
+    let h = {}
+    for (let i of resp.requests) {
+      h[i.requestId] = {
+        ...i,
+        illustData: homeIllustData[i.postWork.postWorkId],
+        userPartial: {
+          requester: users[i.fanUserId] ?? null, // accessing undefined keys returns undefined so making it null is funnier
+          creator: users[i.creatorUserId]
+        }
+      }
+    }
+    return h
+  })())
 
   function toMonth(s) {
     switch (s) {
@@ -73,11 +90,11 @@
       </v-slide-group-item>
     </v-slide-group>
     <p class="text-h6 font-weight-bold pl-6">Recommended works</p>
-    <div class="d-flex flex-wrap justify-start">
-      <div v-for="illust in homePages.recommend.ids">
+    <WorksDisplay>
+      <template v-for="illust in homePages.recommend.ids">
         <Illust :data=homeIllustData[illust] />
-      </div>
-    </div>
+      </template>
+    </WorksDisplay>
     <v-spacer></v-spacer>
     <!--rank-->
     <div>
@@ -94,8 +111,10 @@
       <p class="font-weight-bold pl-4">Requested works</p>
       <v-slide-group show-arrows>
         <v-slide-group-item v-for="i in resp.requests">
-          <v-sheet rounded color="background" class="pa-2 ma-6" width="400px">
-            <span v-html="i.requestProposal.requestOriginalProposalHtml"></span>
+          <v-sheet :title="i.requestProposal.requestOriginalProposal" rounded color="background" class="pa-2 ma-6" width="400px">
+            <NuxtLink :to="'/requests/'+i.requestId" class="uncolored-anchor">
+              <p style="display: -webkit-box; -webkit-line-clamp: 6; width: 400px; text-overflow: ellipsys; overflow-wrap: break-word; overflow: hidden; -webkit-box-orient: vertical; hyphens: auto;" >{{i.requestProposal.requestOriginalProposal}}</p>
+            </NuxtLink>
             <Illust :data="homeIllustData[i.postWork.postWorkId]" compact/>
           </v-sheet>
         </v-slide-group-item>
@@ -108,7 +127,7 @@
       <v-slide-group show-arrows>
         <v-slide-group-item v-for="i in homePages.pixivision">
           <v-sheet rounded color="background" @click="navigateTo(i.url,{external: true})" width="450px" class="pl-4 pr-4">
-            <v-img :src="proxyAssetUrl(i.thumbnailUrl)" style="position: relative">
+            <v-img :src="proxyAssetUrl(i.thumbnailUrl)" style="position: relative" class="pixivision">
               <p style="word-wrap: normal; position: absolute; bottom: 2px; left: 2px">{{i.title}}</p>
             </v-img>
           </v-sheet>
@@ -166,12 +185,21 @@
     <template v-for="i in homePages.recommendByTag">
       <div class="pt-2">
         <Label>Recommended illustrations tagged #{{i.tag}}</Label>
-        <div class="d-flex flex-wrap justify-start">
+        <WorksDisplay>
           <template v-for="j in i.ids">
             <Illust :data="homeIllustData[j]" />
           </template>
-        </div>
+        </WorksDisplay>
       </div>
     </template>
   </div>
 </template>
+<style>
+.pixivision:before {
+  content: '';
+  background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.5));
+  width: 450px;
+  height: 200px;
+  pointer-events: none;
+}
+</style>

@@ -4,6 +4,8 @@
 
 <template>
   <div>
-    hold on cooking
+    <div>
+      hold on cooking
+    </div>
   </div>
 </template>

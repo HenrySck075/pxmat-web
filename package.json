@@ -18,6 +18,8 @@
   },
   "dependencies": {
     "express": "^4.18.2",
+    "image-conversion": "^2.1.1",
+    "nuxt-storage": "^1.2.2",
     "sass": "^1.67.0",
     "vuetify": "^3.4.0-alpha.1"
   }

@@ -34,12 +34,6 @@
     }
   }
 
-  async function onScroll ({ target: { scrollTop, clientHeight, scrollHeight }}) {
-      if (scrollTop + clientHeight >= scrollHeight) {
-        await loadRelated()
-      }
-    }
-
   await loadRelated()
 
   useHead({
@@ -236,7 +230,7 @@
               <template v-slot:prepend>
                 <v-img :src=proxyAssetUrl(illustData.profileImageUrl)></v-img>
               </template>
-              <span>{{illustData.userName}}</span>
+              <NuxtLink :to="'/users/'+illustData.userId" class="uncolored-anchor">{{illustData.userName}}</NuxtLink>
               <template v-slot:append>
                 <AButton href="/" btnStyle="text-none text-subtitle-4" style="display: inline; anchor: right">
                   <v-icon icon="mdi-plus"></v-icon>
@@ -271,11 +265,11 @@
       </div>
       <div class="pt-4">
         <Label>Related works</Label>
-        <div class="d-flex flex-wrap justify-start" @scroll="onScroll" v-if="related">
+        <WorksDisplay v-if="related">
           <template v-for="i in related">
             <Illust :data="i" />
           </template>
-        </div>
+        </WorksDisplay>
         <div class="d-flex justify-center align-center" style="height: 80vh; width: 100vw" v-else>
           <p class="font-weight-bold">Nothing :(</p>
         </div>

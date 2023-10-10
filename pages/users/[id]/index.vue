@@ -1,19 +1,23 @@
 <script setup>
   const r = useRoute()
   const id = r.params.id
-  const resp = await useFetch("/pxapi/user/"+id+"/profile/top?lang=en").then(({data:n})=>n.value.body)
-
-  let illustCount = 0 // passed from [id].vue
+  import nuxtStorage from "nuxt-storage"
+  const resp = nuxtStorage.localStorage.getData("userWorks") 
 </script>
 
 <template>
   <div>
     <Label>Illustrations and Manga</Label>
-    <v-chip>{{illustCount}}</v-chip>
-    <div class="d-flex flex-wrap">
+    <WorksDisplay>
       <template v-for="i in resp.illusts">
         <Illust :data="i" />
       </template>
+    </WorksDisplay>
+    <div class="d-flex justify-center">
+      <NuxtLink :to="r.path+'/artworks'">
+        <v-btn class="text-none w-99">See all</v-btn>
+      </NuxtLink>
     </div>
+    <p>wtf is booth btw</p>
   </div>
 </template>
