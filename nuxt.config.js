@@ -1,6 +1,6 @@
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  css: ['vuetify/lib/styles/main.sass', '@/mein.css'],
+  css: ['vuetify/lib/styles/main.sass'],
   modules: ["nuxt-proxy-request"],
   build: {
     transpile: ['vuetify'],
@@ -18,6 +18,9 @@ export default defineNuxtConfig({
         },
         configureProxyRequest: (e)=>{
           return {
+            cookieDomainRewrite: {
+              '.pixiv.net': ''
+            },
             headers: {
               'Referer': 'https://www.pixiv.net/en',
               'X-User-Id': process.env.Pixiv_User_ID

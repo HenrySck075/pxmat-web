@@ -16,22 +16,26 @@
   let related = ref([])
   let relatedNextIds = []
 
+  const rLoading = ref(false)
+
   async function loadRelated() {
-    if (!ref.value) {
-      const {data:payload} = await useFetch("/pxapi/illust/"+id+"/recommend/init?limit=18&lang=en",{method:"GET",headers:{"X-User-Id":config.pxuserid}})
-      related.value = payload._rawValue.body.illusts 
-      relatedNextIds = payload._rawValue.body.nextIds
+    console.log("h")
+    if (!related.value.length) {
+      const payload = await usePixivFetch("/illust/"+id+"/recommend/init",{method:"GET",headers:{"X-User-Id":config.pxuserid}, query: {limit: 18}})
+      related.value = payload.illusts 
+      relatedNextIds = payload.nextIds
     } else {
-      const {data:payload} = await useFetch("/pxapi/illust/recommend/illusts",{
+      rLoading.value = true
+      const payload = await usePixivFetch("/illust/recommend/illusts",{
         query: {
           "illust_ids[]": relatedNextIds.slice(0,18),
-          lang: "en"
         },
         method:"GET",headers:{"X-User-Id":config.pxuserid}
       })
       relatedNextIds = relatedNextIds.slice(18)
-      related.value.push(...payload.value.bodu.illusts)
+      related.value.push(...payload.illusts)
     }
+    rLoading.value = false
   }
 
   await loadRelated()
@@ -49,14 +53,13 @@
 
   let current = userIllusts.indexOf(id) + 3
   let range = 9
-  let userIllustsData = {}
+  let userIllustsData = ref({})
 
   const fetchIllustInRange = async (start, range) => {
-    if (start < 0) start = 0
-    const {data:h} = await useFetch(`/pxapi/user/${illustData.userId}/illusts`,{
+    if (start < 0) {start = 0}
+    return await usePixivFetch("/user/"+illustData.userId+"/illusts",{
       query: {"ids[]": userIllusts.slice(start,start+range+1), lang: "en"} 
     })
-    return h._rawValue
   }
 
   let multiimaged = ref(false)
@@ -65,26 +68,28 @@
 
   const b = () => {
     fetchIllustInRange(current-range,range).then(d=>{
-      userIllustsData = {...userIllustsData,...d.body}
+      userIllustsData.value = {...userIllustsData.value,...d}
 
-      current=current-Object.keys(d.body).length
+      current=current-Object.keys(d).length
     })
   }
   
   const a = () => {
     fetchIllustInRange(current+range,range).then(d=>{
-      userIllustsData = {...d.body,...userIllustsData}
+      userIllustsData.value = {...d,...userIllustsData.value}
 
-      current=current+Object.keys(d.body).length
+      current=current+Object.keys(d).length
     })
   }
 
   function loadAllPage() {
-    useFetch("/pxapi/illust/"+id+"/pages?lang=en", {"method":"GET",headers:{"X-User-Id":config.pxuserid}}).then(({data: pay}) => {
+    if (route.query.expand === undefined) history.replaceState({},"",route.fullPath+(route.fullPath.includes("?")?"&":"?")+"expand=1")
+    usePixivFetch("/illust/"+id+"/pages", {"method":"GET",headers:{"X-User-Id":config.pxuserid}}).then((pay) => {
       multiimaged.value = true
-      images.value.push(...pay.value.body.slice(1))
+      images.value.push(...pay.slice(1))
     })
   }
+  if (route.query.expand) loadAllPage()
 
   let uilLoading = ref(false)
 
@@ -104,13 +109,18 @@
 
   loadOld()
 
-  let mainStyle = ref("0")
-  let imgvStyle = ref("120vh")
-  let easing = ref("cubic-bezier(0.16, 1, 0.13, 1)")
-  let fullImage = ref("") // it does count
-  let fullImageLazy = ref("/facebook_male.png") // it does count
+  const mainStyle = ref("0")
+  const imgvStyle = ref("120vh")
+  const easing = ref("cubic-bezier(0.16, 1, 0.13, 1)")
+  const fullImage = ref("") // it does count
+  const fullImageLazy = ref("/facebook_male.png") // it does count
+  const fIdx = ref(0)
 
   let animDir = ref("normal")
+
+  import {useDisplay} from "vuetify"
+
+  const d = useDisplay()
 
   function openImage(img, idx) {
     if (illustData.illustType === 2) return
@@ -119,6 +129,7 @@
     fullImageLazy.value = proxyAssetUrl(img.urls.small)
     mainStyle.value = "-20vh"
     imgvStyle.value = "0vh"
+    fIdx.value = idx
     if (route.query.view === undefined) history.replaceState({},"",route.fullPath+(route.fullPath.includes("?")?"&":"?")+"view="+idx)
   }
 
@@ -172,14 +183,36 @@
     })
   }
 
+  const uilSlideModel = ref(Object.keys(userIllustsData).findIndex(v=>v===id)) // actually it doesnt need to be ref since if it changes, user will be directed to a new artworks anyways
+
+  function jpg2png() {
+    const imgEl = document.querySelector("#imgview img")
+
+    import("image-conversion").then(imgConv=>{
+      imgConv.downloadFile(imgConv.canvastoFile(imgConv.imagetoCanvas(imgEl)), id+"_p"+fIdx.value+".png")
+    })
+  }
+
   </script>
 
 <template>
   <div>
     <!--appbar zindex is 1006-->
     <div class="t" id="imgv" :style="{position:'fixed', zIndex:'1007', top: imgvStyle, left:'0', 'transition-timing-function': easing, height: '100%', width: '100%'}">
-      <v-icon icon="mdi-arrow-left" size="x-large" style="z-index: 10" @click="closeImage()"></v-icon>
-      <v-img style="position: absolute; left:auto; top:0" :src=fullImage :lazy-src="fullImageLazy" height="99%" width="100%" :eager="true"></v-img>
+      <div style="z-index: 2000; ">
+        <v-icon icon="mdi-arrow-left" size="x-large" style="z-index: 10" @click="closeImage()"></v-icon>
+        <v-menu location="start">
+          <template v-slot:activator="{props}">
+            <v-btn v-bind="props" variant="text" icon="mdi-dots-vertical" style="position: absolute: right: 0; top: 0; z-index: 2000"></v-btn>
+          </template>
+          <v-list>
+            <v-list-item @click="jpg2png()">
+              <v-list-item-title>Download as PNG</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
+      <v-img id="imgview" style="position: absolute; left:auto; top:0" :src=fullImage :lazy-src="fullImageLazy" height="99%" width="100%" :eager="true"></v-img>
     </div>
 
     <div class="t" :style="{position:'relative', top: mainStyle, left:'0', 'transition-timing-function': easing}">
@@ -191,16 +224,19 @@
         </v-sheet>
         <div>
           <template v-for="(i, idx) in images">
-            <v-img v-show="!loadUgoira" :src=proxyAssetUrl(i.urls.small) max-height=1000px width=98% id=illustImg class="pt-2 pb-2" @click="(illustData.pageCount!=1 && !multiimaged) ? loadAllPage() : openImage(i, idx)" @load="(illustData.illustType === 2) ? loadUgoiraF() : openImageP()"></v-img>
+            <v-img v-show="!loadUgoira" :src="proxyAssetUrl(i.urls[d.smAndDown ? 'small' : d.md ? 'medium' : 'large'])" max-height=1000px width=98% id=illustImg class="mt-2 mb-2" @click="(illustData.pageCount!=1 && !multiimaged) ? loadAllPage() : openImage(i, idx)" @load="(illustData.illustType === 2) ? loadUgoiraF() : openImageP()"></v-img>
           </template>
           <canvas v-show="loadUgoira" class="pt-2 pb-2" style="max-height: 1000px" @show="loadUgoiraF(this.$el)"></canvas>
 
-          <v-btn 
-            style="margin-left: auto; margin-right: auto; width: 100px; background-color: black" 
-            v-if="illustData.pageCount!=1 && !multiimaged"
-            @click="loadAllPage()"
-          >See all</v-btn>
+          <div class="d-flex justify-center">
+            <v-btn 
+              style="margin-left: auto; margin-right: auto; width: 100px; background-color: black" 
+              v-if="illustData.pageCount!=1 && !multiimaged"
+              @click="loadAllPage()"
+            >See all</v-btn>
 
+          </div>
+            
         </div>
         <v-sheet rounded>
           <v-card-actions>
@@ -244,10 +280,10 @@
           <p class="text-center">Sending comments won't be available because i said so :troll_king:</p>
         </div>
         <v-sheet rounded>
-          <v-slide-group center-active show-arrows id="userIllusts">
+          <v-slide-group v-model="uilSlideModel" center-active show-arrows id="userIllusts">
             <v-slide-group-item>
               <v-card class="d-flex justify-center align-center" v-if="current>0" @click="loadOld()">
-                <p v-if="!uilLoading">Load more</p>
+                <v-icon v-if="!uilLoading" icon="mdi-menu-left-outline"></v-icon>
                 <v-progress-circular v-if="uilLoading" color="primary" indeterminate />
               </v-card>
             </v-slide-group-item>
@@ -256,7 +292,7 @@
             </v-slide-group-item>
             <v-slide-group-item>
               <v-card class="d-flex justify-center align-center" @click="loadOld()">
-                <p v-if="!uilLoading">Load more</p>
+                <v-icon v-if="!uilLoading" icon="mdi-menu-right-outline"></v-icon>
                 <v-progress-circular v-if="uilLoading" color="primary" indeterminate />
               </v-card>
             </v-slide-group-item>
@@ -270,6 +306,9 @@
             <Illust :data="i" />
           </template>
         </WorksDisplay>
+        <div v-if="related" class="d-flex justify-center">
+          <v-btn @click="loadRelated()" :disabled="rLoading" :loading="rLoading">Load more</v-btn>
+        </div>
         <div class="d-flex justify-center align-center" style="height: 80vh; width: 100vw" v-else>
           <p class="font-weight-bold">Nothing :(</p>
         </div>

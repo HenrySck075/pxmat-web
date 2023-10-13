@@ -73,12 +73,19 @@ here's how you previously set your cookies after obtaining it:
 ```
 after setting cookies, refresh
 
-- Set the Pixiv_User_Id environment variable to your pixiv user id 
-- h
-
 # Known issues
 - Pages that uses query (`/tags/[tag]`, `/bookmarks`, ...) does not reload if it's entered before even with different query values (e.g. Search filters)
-- Going back in history after opening illust in full view returns to the previous artwork as the history stack is replaced (keep it like that) 
-+ Solution: handle back button
-- Avatars doesn't load for some reason, even `lazy-src`
+- ~~Going back in history after opening illust in full view returns to the previous artwork as the history stack is replaced (keep it like that)~~ Ok so pixiv desktop also does this, it's just mobile adding #big_idx hash fsr
+- Avatars sometimes hidden for some reason
 
+# some funky dev stuff
+- Every page needs to have `filter` variable for filtering
+  + Option structure: 
+  ```
+  {
+      r18: boolean,
+      before: Date,
+      after: Date
+  }
+  ```
+- Always restart server when modifying composables, hmr doesn't work on my machine

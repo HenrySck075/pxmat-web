@@ -36,6 +36,8 @@
     mode = isR18 ? "r18" : "all"
     load()
   }
+
+  defineExpose(["toggleR18"])
 </script>
 
 

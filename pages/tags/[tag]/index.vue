@@ -1,8 +1,7 @@
 <script setup>
   const tag = useRoute().params.tag 
-  const {data: payload} = await useFetch("/pxapi/search/top/"+tag,{
+  const resp = await usePixivFetch("/search/top/"+tag,{
     query: {
-      lang: "en",
       word: tag,
       order:"date_d",
       type: "all",
@@ -10,14 +9,8 @@
       s_mode: "s_tag_full",
     }
   })
-  const resp = payload.value.body
-  console.log(resp.popular)
 
-  const proxyAssetUrl = (a) => {
-    if (a === undefined) return "/facebook_male.png"
-    return a.replace("https:\/\/i.pximg.net","/pxassets")
-  }
-
+  const proxyAssetUrl =useProxyURL 
   const ttKeys = Object.keys(resp.tagTranslation)
   useHead({
     title: resp.extraData.meta.title

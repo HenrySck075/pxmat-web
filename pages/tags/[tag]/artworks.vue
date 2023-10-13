@@ -15,7 +15,7 @@
   async function loadPage(pa, init = false) {
     let page = pa.toString()
     pageIllusts.value={}
-    const {data: payload} = await useFetch("/pxapi/search/artworks/"+tag, {
+    const re = await usePixivFetch("/search/artworks/"+tag, {
       query: {
         word: tag,
         order: "date_d",
@@ -23,15 +23,14 @@
         p: page,
         s_mode: "s_tag_full",
         type: "illust_and_ugoira",
-        lang:"en"
       }
     })
     if (init) {
-      resp.value = payload._rawValue.body
+      resp.value = re
       pageIllusts.value = resp.value.illustManga.data
     }
     else {
-      pageIllusts.value = payload._rawValue.body.illustManga.data
+      pageIllusts.value = re.illustManga.data
       history.replaceState({},"",r.path+"?"+toPathQuery({...r.query, "page": page}))
     }
   };
@@ -47,13 +46,13 @@
 <template>
   <div>
     <v-sheet elevation="2">
-
+      <v-pagination v-model="page" :length="resp.illustManga.lastPage" rounded="circle"></v-pagination>
       <p class="ml-4 font-weight-bold">Works</p>
-      <div class="d-flex flex-wrap justify-start">
+      <WorksDisplay>
         <template v-for="i in pageIllusts">
           <Illust :data="i" />
         </template>
-      </div>
+      </WorksDisplay>
       <v-pagination v-model="page" :length="resp.illustManga.lastPage" rounded="circle"></v-pagination>
     </v-sheet>
   </div>

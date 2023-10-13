@@ -8,7 +8,7 @@
     isR18 = toggle 
     
     resp = await (async ()=>{
-      let {data:p} = await useFetch("/pxapi/top/novel",{query: {
+      let {data:p} = await usePixivFetch("/top/novel",{query: {
         mode: isR18 ? "r18" : "all"
       }})
       return p.value.body

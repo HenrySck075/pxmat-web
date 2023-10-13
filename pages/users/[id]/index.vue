@@ -1,8 +1,10 @@
 <script setup>
   const r = useRoute()
   const id = r.params.id
-  import nuxtStorage from "nuxt-storage"
-  const resp = nuxtStorage.localStorage.getData("userWorks") 
+  const resp = await usePixivFetch("/user/"+id+"/profile/top") // not really just checking if user have a type of work
+  const emit = defineEmits(["tabmod"]);
+  emit("tabmod",{illusts: !!resp.illusts, manga: !!resp.manga, novels: !!resp.novels})
+  
 </script>
 
 <template>

@@ -1,7 +1,7 @@
 <script setup>
   const r = useRoute()
   const tag = r.params.tag 
-  const tagMeta = await useFetch("/pxapi/search/tags/"+tag+"?lang=en").then(({data: c}) => c._rawValue.body)
+  const tagMeta = await usePixivFetch("/search/tags/"+tag)
 
   function trim(s,c) {
     c = c.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -11,10 +11,7 @@
     ), "");
   }
       
-  const proxyAssetUrl = (a) => {
-    if (a === undefined) return "/facebook_male.png"
-    return a.replace("https:\/\/i.pximg.net","/pxassets")
-  }
+  const proxyAssetUrl = useProxyURL
   const p = trim(r.fullPath.split("/").slice(-1)[0],"/")
 
   let tname = ref("v-window-x-transition")
@@ -24,7 +21,7 @@
 
   const tabs = {
     main: "Top",
-    artworks: "Illustrations"
+    illustrations: "Illustrations"
   }
 
   const tabidx = {

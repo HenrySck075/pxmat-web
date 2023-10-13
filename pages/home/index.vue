@@ -3,15 +3,21 @@
     title: "Online community for artists [pixiv Material Design Concept]"
   })
   
-  import nuxtStorage from "nuxt-storage"
-
   const route = useRoute()
 
-  const resp = await usePixivFetch("/pxapi/top/illust?mode=all&lang=en&version=3293428791d78bc27e839167e71ceabcb899355e", {
+  const resp = await usePixivFetch("/top/illust?mode=all", {
     method: "GET",
     headers: {"Referer": "https://www.pixiv.net/en"}
   })
 
+  // avoid lag on main menu fron the "Recommended by tag" elements
+  const rbtExpand=reactive((()=>{
+    let d = []
+    for (let h = 0; h < resp.page.recommendByTag.length; h++) {
+      d.push(false)
+    }
+    return d
+  })())
 
   const homePages = resp.page
 
@@ -31,7 +37,7 @@
     return h
   })()
 
-  nuxtStorage.localStorage.setData("requests", (()=>{
+  useSessionData("requests", (()=>{
     let h = {}
     for (let i of resp.requests) {
       h[i.requestId] = {
@@ -63,11 +69,13 @@
     }
   }
 
-  const proxyAssetUrl = (a) => {
-    if (a === undefined) return ""
-    return a.replace("https:\/\/i.pximg.net","/pxassets")
-  } 
+  const proxyAssetUrl = useProxyURL
   let tab = ref(route.query.tab ?? "illust")
+
+  /**
+  @param {{r18: boolean}} f
+  */
+  function filter(f) {}
 
 </script>
 
@@ -128,7 +136,7 @@
         <v-slide-group-item v-for="i in homePages.pixivision">
           <v-sheet rounded color="background" @click="navigateTo(i.url,{external: true})" width="450px" class="pl-4 pr-4">
             <v-img :src="proxyAssetUrl(i.thumbnailUrl)" style="position: relative" class="pixivision">
-              <p style="word-wrap: normal; position: absolute; bottom: 2px; left: 2px">{{i.title}}</p>
+              <p style="word-wrap: normal; position: absolute; bottom: 2px; left: 2px" class="font-weight-bold">{{i.title}}</p>
             </v-img>
           </v-sheet>
         </v-slide-group-item>
@@ -151,7 +159,7 @@
       </div>
     </div>
     <!--Recommended tags--> 
-    <div>
+    <div v-if="false">
       <Label>Popular tags</Label>
       <v-slide-group show-arrows>
         <v-slide-group-item v-for="i in homePages.tags">
@@ -182,14 +190,15 @@
       </v-slide-group>
     </div>
     <!--Recommended illusts of a tag -->
-    <template v-for="i in homePages.recommendByTag">
+    <template v-for="(i, idx) in homePages.recommendByTag">
       <div class="pt-2">
-        <Label>Recommended illustrations tagged #{{i.tag}}</Label>
+        <Label>Recommended illustrations tagged <NuxtLink class="uncolored-anchor" :to="'tags/'+i.tag">#{{i.tag}}</NuxtLink></Label>
         <WorksDisplay>
-          <template v-for="j in i.ids">
-            <Illust :data="homeIllustData[j]" />
+          <template v-for="(j,idd) in i.ids">
+            <Illust :data="homeIllustData[j]" v-if="idd < 4 || rbtExpand[idx]"/>
           </template>
         </WorksDisplay>
+        <v-btn class="w-100" @click="rbtExpand[idx] = true" v-if="!rbtExpand[idx]">Expand</v-btn>
       </div>
     </template>
   </div>
@@ -199,7 +208,7 @@
   content: '';
   background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.5));
   width: 450px;
-  height: 200px;
+  height: 250px;
   pointer-events: none;
 }
 </style>

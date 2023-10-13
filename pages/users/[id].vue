@@ -3,15 +3,20 @@
   const rr = useRouter()
   const id = r.params.id
 
-  const resp = await usePixivFetch("/user/"+id+"?full=1&lang=en")
-  const works = await usePixivFetch("/user/"+id+"/profile/top?lang=en") // not really just checking if user have a type of work
+  const resp = await usePixivFetch("/user/"+id+"?full=1")
+  const works = ref({
+    illustrations: "truthy value",
+    manga: "",
+    novels: ""
+  })
 
+  console.log(works)
+
+  useSessionData("userWorks", works) 
   import nuxtStorage from "nuxt-storage"
 
-  nuxtStorage.localStorage.setData('userWorks', works);
-
   rr.afterEach((to, from, fail) => {
-    if (!to.path.startsWith("/users/") && !fail) nuxtStorage.localStorage.removeItem("userWorks")
+    if (!to.path.startsWith("/users/") && !fail) nuxtStorage.sessionStorage.removeItem("userWorks")
   })
 
 
@@ -42,6 +47,9 @@
     navigateTo(dest)
   }
 
+  function tabmod(v) {
+    works.value = v
+  }
  
   console.log(+works.manga)
 
@@ -79,9 +87,7 @@
         <v-tab value="manga" :to="baseUrl+'/manga'" v-if="+works.manga">Manga</v-tab>
         <v-tab value="novels" :to="baseUrl+'/novels'" v-if="+works.novels">Novels</v-tab>
       </v-tabs>
-      <transition> 
-        <NuxtPage ref="page" class="pt-6"/>
-      </transition>
+      <NuxtPage ref="page" class="pt-6" @tabmod="tabmod" />
     </v-sheet>
   </div>
 </template>

@@ -25,6 +25,8 @@
     if (dest == r.path) return
     navigateTo(dest)
   }
+
+  const filter = computed(()=>page.value?.filter)
 </script>
 
 <template>
@@ -35,13 +37,7 @@
       </template>
     </v-tabs>
 
-    <div class="d-flex justify-end">
-      <v-btn @click="()=>{page.pageRef.toggleR18(false)}" color=background>All</v-btn>
-      <v-btn @click="()=>{page.pageRef.toggleR18(true)}" color=background>R18</v-btn>
-    </div>
-    <transition :name="tname" @before-enter="()=>{transitioning = true}" @after-leave="()=>{transitioning = false}">
-      <NuxtPage ref="page"/>
-    </transition>
+    <NuxtPage ref="page" @before-enter="transitioning = true" @after-leave="transitioning = false" />
 
   </v-sheet>
 </template>
