@@ -194,6 +194,7 @@
       <div class="pt-2">
         <Label>Recommended illustrations tagged <NuxtLink class="uncolored-anchor" :to="'tags/'+i.tag">#{{i.tag}}</NuxtLink></Label>
         <WorksDisplay>
+          <!--https://vuejs.org/guide/essentials/conditional.html#v-if-with-v-for-->
           <template v-for="(j,idd) in i.ids">
             <Illust :data="homeIllustData[j]" v-if="idd < 4 || rbtExpand[idx]"/>
           </template>

@@ -7,11 +7,13 @@
       align-items: center;
     }
 
-    $offset: 187;
-    $duration: 1.4s;
+    :root{
+      --offset: 187;
+      --duration: 1.4s;
+    }
 
     .spinner {
-      animator: rotator $duration linear infinite;
+      animator: rotator --duration linear infinite;
     }
 
     @keyframes rotator {
@@ -21,16 +23,16 @@
 
     .path {
       stroke-dashoffset: 0;
-      stroke-dasharray: $offset;
+      stroke-dasharray: --offset;
       stroke: black;
       transform-origin: center;
-      animation: dash $duration ease-in-out infinite;
+      animation: dash --duration ease-in-out infinite;
     }
 
     @keyframes dash {
-      0% { stroke-dashoffset: $offset; }
-      50% { stroke-dashoffset: $offset/4; transform: rotate(135deg) }
-      100% { stroke-dashoffset: $offset; transform: rotate(450deg) }
+      0% { stroke-dashoffset: --offset; }
+      50% { stroke-dashoffset: --offset/4; transform: rotate(135deg) }
+      100% { stroke-dashoffset: --offset; transform: rotate(450deg) }
     }
   </style>
   <title>Downloading the entire Vuetify components, please wait...</title>

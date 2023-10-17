@@ -9,9 +9,31 @@
 
   const s = (a, b) => a>b
 
-  const {data:illustDataRef} = await useFetch(`/pxapi/illust/${id}?lang=en&ref=https://www.pixiv.net/en`,{method:"GET",headers:{"X-User-Id":"76179633"}})
-  const illustData = illustDataRef._rawValue.body
+  const illustData = await usePixivFetch(`/illust/${id}?ref=https://www.pixiv.net/en`,{method:"GET"})
   const userIllusts = Object.keys(illustData.userIllusts).sort(s)
+  const comments = ref([])
+  const hasNext = ref(true)
+  const chillBro = ref(false)
+  let cOffset = 3
+
+  async function loadPreviewComments() {
+    comments.value = await usePixivFetch("/illusts/comments/root", {query: {
+      illust_id: id,
+      offset: 0,
+      limit: 3
+    }}).comments
+  }
+
+  async function loadMoreComments() {
+    chillBro.value = true
+    let me = await usePixivFetch("/illusts/comments/root", {query: {
+      illust_id: id,
+      offset: cOffset,
+      limit: 50
+    }})
+    hasNext.value = me.hasNext
+    comments.value.push(...me.comments)
+  }
 
   let related = ref([])
   let relatedNextIds = []
@@ -44,12 +66,11 @@
     title: `${illustData.alt} - pixiv`
   })
 
-  const proxyAssetUrl = (a) => {
+  const proxyUUrl = (a) => {
     if (a === undefined) return ""
-    return a.replace("https:\/\/i.pximg.net","/pxassets")
+    return a.replace("https:\/\/i.pximg.net","/pxugoira")
   }
-
-  const vue = useNuxtApp().vueApp
+  const proxyAssetUrl = useProxyURL
 
   let current = userIllusts.indexOf(id) + 3
   let range = 9
@@ -130,7 +151,7 @@
     mainStyle.value = "-20vh"
     imgvStyle.value = "0vh"
     fIdx.value = idx
-    if (route.query.view === undefined) history.replaceState({},"",route.fullPath+(route.fullPath.includes("?")?"&":"?")+"view="+idx)
+    useQuery("view", idx)
   }
 
   function closeImage() {
@@ -138,7 +159,7 @@
     animDir.value = "reverse"
     mainStyle.value = "0vh"
     imgvStyle.value = "120vh"
-    history.replaceState({},"",route.fullPath.replace((route.fullPath.includes("?")?"&":"?") +"view="+route.query.view), "")
+    useQuery("view", null)
   }
 
   function openImageP() {
@@ -149,37 +170,53 @@
     }
   }
 
+  // promises hell
   function drawUgoiraFrame(asyncblob, ctx) {
     return () => {
-      asyncblob.theb(b=>{
-        ctx.drawImage(createImageBitmap(b),0,0)
+      asyncblob.then(b=>{
+        createImageBitmap(b).then(pr=>ctx.drawImage(pr,0,0))
       })
     }
   }
 
-  const callbackhell = ({data: lo, frames: f, canvasContext: ctx}) => {
-    const zip = new (require("jszip"))
-    loadUgoira.value = true
-    zip.loadAsync(lo).then(z=>{
-      let dur = 0
-      for (let i of frames) {dur+=i.delay}
-      function loop() {
-        for (let i of frames) {
-          setTimeout(drawUgoiraFrame(z.file(i.name).async("blob"), ctx), i.delay)
+  function callbackhell({data: lo, frames: f, canvasContext: ctx}) {
+    // promises are just too funny sorry guys
+    console.log("smurf cat")
+    import("jszip").then(zip=>{
+      zip.loadAsync(lo).then(z=>{
+        let dur = 0
+        let frameblob = {}
+        for (let i of f) {
+          dur+=i.delay
+          frameblob[i.file] = z.file(i.file).async("blob")
         }
-      }
-      setInterval(loop, dur)
+        loadUgoira.value = true
+        function loop() {
+          let last = 0
+          for (let i of f) {
+            last += i.delay
+            setTimeout(drawUgoiraFrame(frameblob[i.file], ctx), last)
+          }
+        }
+        setInterval(loop, dur)
+      })
     })
   }
 
-  function loadUgoiraF(canvas) {
-    useFetch("/pxapi/illust/"+id+"/ugoira_meta?lang=en", {method: "GET",headers:{"X-User-Id":config.pxuserid}}).then(({data: pay}) => {
-      let resp = pay._rawValue.body
-      const src = proxyAssetUrl(resp.originalSrc)
+  function loadUgoiraF() {
+    /**@type {HTMLCanvasElement}*/
+    const canvas = document.querySelector("#ugoiraCanvas")
+    const imageRect = document.querySelector("#illustImg").getBoundingClientRect()
+    canvas.width = imageRect.width
+    canvas.height = imageRect.height
+    usePixivFetch("/illust/"+id+"/ugoira_meta", {method: "GET"}).then((resp) => {
+      const src = proxyAssetUrl(resp.src)
 
       const frames = resp.frames
 
-      useFetch(src, {method: "GET"}).then(n=>callbackhell({...n, ...{"frames": frames, "canvasContext": canvas.getContext("2d")}}))
+      import("jszip-utils").then(jzutil=>{
+        jzutil.getBinaryContent(src, (e,n)=>{callbackhell({data: n, "frames": frames, "canvasContext": canvas.getContext("2d")})})
+      })
     })
   }
 
@@ -189,7 +226,7 @@
     const imgEl = document.querySelector("#imgview img")
 
     import("image-conversion").then(imgConv=>{
-      imgConv.downloadFile(imgConv.canvastoFile(imgConv.imagetoCanvas(imgEl)), id+"_p"+fIdx.value+".png")
+      imgConv.imagetoCanvas(imgEl).then(i=>imgConv.canvastoFile(i, undefined, "image/png")).then(b=>imgConv.downloadFile(b, id+"_p"+fIdx.value+".png"))
     })
   }
 
@@ -224,9 +261,11 @@
         </v-sheet>
         <div>
           <template v-for="(i, idx) in images">
-            <v-img v-show="!loadUgoira" :src="proxyAssetUrl(i.urls[d.smAndDown ? 'small' : d.md ? 'medium' : 'large'])" max-height=1000px width=98% id=illustImg class="mt-2 mb-2" @click="(illustData.pageCount!=1 && !multiimaged) ? loadAllPage() : openImage(i, idx)" @load="(illustData.illustType === 2) ? loadUgoiraF() : openImageP()"></v-img>
+            <v-img v-show="!loadUgoira" :src="proxyAssetUrl(i.urls[d.smAndDown ? 'small' : d.md ? 'medium' : 'large'])" max-height=1000px width=98% id=illustImg class="mt-2 mb-2" @click="(illustData.pageCount!=1 && !multiimaged) ? loadAllPage() : openImage(i, idx)" @load="(illustData.illustType === 2) ? (()=>{loadUgoiraF()})() : openImageP()"></v-img>
           </template>
-          <canvas v-show="loadUgoira" class="pt-2 pb-2" style="max-height: 1000px" @show="loadUgoiraF(this.$el)"></canvas>
+          <div class="d-flex justify-center" v-show="loadUgoira">
+            <canvas class="pt-2 pb-2" style="max-height: 1000px" id="ugoiraCanvas"></canvas>
+          </div>
 
           <div class="d-flex justify-center">
             <v-btn 
@@ -276,11 +315,12 @@
             </v-list-item>
           </v-card-actions>
         </v-card>
-        <div color="background" class="d-flex align-center w-100">
-          <p class="text-center">Sending comments won't be available because i said so :troll_king:</p>
+        <div color="background" class="d-flex align-center w-100 pt-4 pb-4">
+          <div><p class="font-weight-bold">Comments</p></div>
+          <v-btn @click="loadMoreComments()" :disabled="chillBro" :loading="chillBro" v-if="hasNext">Load more</v-btn>
         </div>
         <v-sheet rounded>
-          <v-slide-group v-model="uilSlideModel" center-active show-arrows id="userIllusts">
+          <v-slide-group v-model="uilSlideModel" center-active id="userIllusts">
             <v-slide-group-item>
               <v-card class="d-flex justify-center align-center" v-if="current>0" @click="loadOld()">
                 <v-icon v-if="!uilLoading" icon="mdi-menu-left-outline"></v-icon>
@@ -291,7 +331,7 @@
               <Illust :data=illust :interact="k!=id" compact/>
             </v-slide-group-item>
             <v-slide-group-item>
-              <v-card class="d-flex justify-center align-center" @click="loadOld()">
+              <v-card class="d-flex justify-center align-center" @click="loadNew()">
                 <v-icon v-if="!uilLoading" icon="mdi-menu-right-outline"></v-icon>
                 <v-progress-circular v-if="uilLoading" color="primary" indeterminate />
               </v-card>

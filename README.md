@@ -77,6 +77,8 @@ after setting cookies, refresh
 - Pages that uses query (`/tags/[tag]`, `/bookmarks`, ...) does not reload if it's entered before even with different query values (e.g. Search filters)
 - ~~Going back in history after opening illust in full view returns to the previous artwork as the history stack is replaced (keep it like that)~~ Ok so pixiv desktop also does this, it's just mobile adding #big_idx hash fsr
 - Avatars sometimes hidden for some reason
+- `composables/useFileFetch.js`: Content-Length header is missing in HEAD request, using full file fetch rn
+- Cookies sometimes refuses to work on some devices, even if it's the same shit (i cant work on pc now :sadge:)
 
 # some funky dev stuff
 - Every page needs to have `filter` variable for filtering
