@@ -6,7 +6,10 @@
           <!--pixiv will never rank nsfw so dont worry-->
           <v-chip style="font-size: 10px; position: absolute; top:5px; left: 12px; background-color: rgb(255,64,96); border-radius: 4px" class="pa-2" v-if="data.xRestrict">R-18</v-chip>
           <v-chip :style="{fontSize: '10px', position: 'absolute', top: '5px', left: '12px', backgroundColor: ranking==1 ? '#D6BA49' : ranking==2 ? '#858585' : ranking==3 ? '#C8A17E' : 'rgba(133,133,133,0.5)', borderRadius: '50%'}" class="pa-2" v-if="ranking">{{ranking}}</v-chip>
-          <v-chip style="font-size: 10px; position: absolute; top:5px; right:12px; background-color: rgba(133,133,133,0.5)" v-if="data.pageCount>1" class="pa-2">{{data.pageCount}}</v-chip>
+          <div style="font-size: 10px; position: absolute; top:5px; right:12px; background-color: rgba(133,133,133,0.5)" v-if="data.pageCount>1" class="pa-1 font-weight-bold">
+            <v-icon size="10px" icon="mdi-layers-outline"></v-icon>
+            {{data.pageCount}}
+          </div>
           <v-icon style="background-color: rgba(133,133,133,0.5); position: absolute; margin: auto; display: block; width: 35px" size=35px icon="mdi-play" v-if="data.illustType == 2"></v-icon>
         </v-img>
       </NuxtLink>

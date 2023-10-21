@@ -17,23 +17,30 @@
   let cOffset = 3
 
   async function loadPreviewComments() {
-    comments.value = await usePixivFetch("/illusts/comments/root", {query: {
+    const real = await usePixivFetch("/illusts/comments/roots", {query: {
       illust_id: id,
       offset: 0,
       limit: 3
-    }}).comments
+    }})
+    comments.value = real.comments 
+    hasNext.value = real.hasNext
+    console.log(comments)
   }
 
   async function loadMoreComments() {
     chillBro.value = true
-    let me = await usePixivFetch("/illusts/comments/root", {query: {
+    let me = await usePixivFetch("/illusts/comments/roots", {query: {
       illust_id: id,
       offset: cOffset,
       limit: 50
     }})
     hasNext.value = me.hasNext
     comments.value.push(...me.comments)
+    if (hasNext.value) cOffset+=me.comments.length
   }
+
+  const commentsDisabled = !!illustData.commentOff
+  if (!commentsDisabled) await loadPreviewComments()
 
   let related = ref([])
   let relatedNextIds = []
@@ -41,7 +48,6 @@
   const rLoading = ref(false)
 
   async function loadRelated() {
-    console.log("h")
     if (!related.value.length) {
       const payload = await usePixivFetch("/illust/"+id+"/recommend/init",{method:"GET",headers:{"X-User-Id":config.pxuserid}, query: {limit: 18}})
       related.value = payload.illusts 
@@ -66,7 +72,7 @@
     title: `${illustData.alt} - pixiv`
   })
 
-  const proxyUUrl = (a) => {
+  const proxyUrl = (a) => {
     if (a === undefined) return ""
     return a.replace("https:\/\/i.pximg.net","/pxugoira")
   }
@@ -74,7 +80,7 @@
 
   let current = userIllusts.indexOf(id) + 3
   let range = 9
-  let userIllustsData = ref({})
+  const userIllustsData = ref({})
 
   const fetchIllustInRange = async (start, range) => {
     if (start < 0) {start = 0}
@@ -104,7 +110,7 @@
   }
 
   function loadAllPage() {
-    if (route.query.expand === undefined) history.replaceState({},"",route.fullPath+(route.fullPath.includes("?")?"&":"?")+"expand=1")
+    useQuery("expand", 1)
     usePixivFetch("/illust/"+id+"/pages", {"method":"GET",headers:{"X-User-Id":config.pxuserid}}).then((pay) => {
       multiimaged.value = true
       images.value.push(...pay.slice(1))
@@ -203,16 +209,22 @@
     })
   }
 
+  let ugoiraSrc = ["", ""]
+  let ugoiraFrames = []
+
   function loadUgoiraF() {
     /**@type {HTMLCanvasElement}*/
     const canvas = document.querySelector("#ugoiraCanvas")
     const imageRect = document.querySelector("#illustImg").getBoundingClientRect()
-    canvas.width = imageRect.width
-    canvas.height = imageRect.height
+    console.log(imageRect)
+    canvas.width = 0+imageRect.width
+    canvas.height = 0+imageRect.height
     usePixivFetch("/illust/"+id+"/ugoira_meta", {method: "GET"}).then((resp) => {
+      ugoiraSrc = [resp.originalSrc, resp.src]
       const src = proxyAssetUrl(resp.src)
 
       const frames = resp.frames
+      ugoiraFrames = frames
 
       import("jszip-utils").then(jzutil=>{
         jzutil.getBinaryContent(src, (e,n)=>{callbackhell({data: n, "frames": frames, "canvasContext": canvas.getContext("2d")})})
@@ -222,11 +234,40 @@
 
   const uilSlideModel = ref(Object.keys(userIllustsData).findIndex(v=>v===id)) // actually it doesnt need to be ref since if it changes, user will be directed to a new artworks anyways
 
+  // converters
   function jpg2png() {
     const imgEl = document.querySelector("#imgview img")
 
     import("image-conversion").then(imgConv=>{
       imgConv.imagetoCanvas(imgEl).then(i=>imgConv.canvastoFile(i, undefined, "image/png")).then(b=>imgConv.downloadFile(b, id+"_p"+fIdx.value+".png"))
+    })
+  }
+
+  async function ugoira2gif(srci = 1) {
+    Promise.all([import("jszip"), import("jszip-utils"), import("gif-encoder-2")]).then(([jszip,jzutil,gifenc])=>{
+      jzutil.getBinaryContent(ugoiraSrc[srci], async (e,n)=>{
+        const z = await jszip.loadAsync(n)
+        const [w,h] = ugoiraSrc[srci].slice(0,-4).split("_ugoira")[1].split("x")
+        const gif = new gifenc.GIFEncoder(+w,+h,"neuquant",false,ugoiraFrames.length)
+        const offscreen = new OffscreenCanvas(+w,+h)
+        const ctx = offscreen.getContext("2d")
+        gif.setFrameRate(30)
+        gif.start()
+        for (let i of ugoiraFrames) {
+          gif.setDelay(i.delay)
+          ctx.drawImage(await createImageBitmap(await z.file(i.file).async("blob")),0,0)
+          gif.addFrame(ctx)
+        }
+        gif.finish()
+        const link = document.createElement('a')
+        link.href = window.URL.createObjectURL(new Blob([gif.out.getData()]))
+        link.download = id+"_"+w+"x"+h+".gif"
+        document.body.appendChild(link)
+        const evt = document.createEvent('MouseEvents')
+        evt.initEvent('click', false, false)
+        link.dispatchEvent(evt)
+        document.body.removeChild(link)
+      })
     })
   }
 
@@ -315,14 +356,19 @@
             </v-list-item>
           </v-card-actions>
         </v-card>
-        <div color="background" class="d-flex align-center w-100 pt-4 pb-4">
-          <div><p class="font-weight-bold">Comments</p></div>
+        <div color="background" class="align-center w-100 pa-8" v-if="!commentsDisabled">
+          <p class="font-weight-bold">Comments</p>
+          <div id="commentsection">
+            <template v-for="i in comments" :key="i">
+              <Comment :data=i />
+            </template>
+          </div>
           <v-btn @click="loadMoreComments()" :disabled="chillBro" :loading="chillBro" v-if="hasNext">Load more</v-btn>
         </div>
         <v-sheet rounded>
           <v-slide-group v-model="uilSlideModel" center-active id="userIllusts">
             <v-slide-group-item>
-              <v-card class="d-flex justify-center align-center" v-if="current>0" @click="loadOld()">
+              <v-card class="d-flex justify-center align-center" width="50px" v-if="current>0" @click="loadOld()">
                 <v-icon v-if="!uilLoading" icon="mdi-menu-left-outline"></v-icon>
                 <v-progress-circular v-if="uilLoading" color="primary" indeterminate />
               </v-card>
@@ -331,7 +377,7 @@
               <Illust :data=illust :interact="k!=id" compact/>
             </v-slide-group-item>
             <v-slide-group-item>
-              <v-card class="d-flex justify-center align-center" @click="loadNew()">
+              <v-card class="d-flex justify-center align-center" width="50px" @click="loadNew()">
                 <v-icon v-if="!uilLoading" icon="mdi-menu-right-outline"></v-icon>
                 <v-progress-circular v-if="uilLoading" color="primary" indeterminate />
               </v-card>

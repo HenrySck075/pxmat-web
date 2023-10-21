@@ -7,5 +7,10 @@ export default function<Value>(name: string, value: Value | undefined): Value {
     ns.localStorage.setData(name, value); 
     return value
   }
-  else return ns.localStorage.getData(name)
+  else {
+    const real = ns.localStorage.getData(name)
+    console.log(real)
+    // @ts-ignore
+    return real
+  }
 }

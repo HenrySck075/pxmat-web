@@ -10,7 +10,7 @@
         <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer" v-if=cookieSet></v-app-bar-nav-icon>
 
         <v-app-bar-title>
-          <v-img src="/favicon.ico" :aspect-ratio="1" width=21px></v-img>
+          <NuxtLink to="/home"><v-img src="/favicon.ico" :aspect-ratio="1" width=21px></v-img></NuxtLink>
         </v-app-bar-title>
 
         <v-spacer></v-spacer>
@@ -101,12 +101,7 @@
             <div v-else>
               <p class="font-subtitle-1 pt-5">Age</p>
               <!--v-select :items="filterModel.modeItems" v-model="filterModel.mode" item-title="dis" item-value="code"></v-select-->
-              <v-select v-model="filterModel.mode">
-                <v-list>
-                  <v-list-item title="All" value="all" />
-                  <v-list-item title="All ages" value="safe" v-if="$route.path.startsWith('/artworks')" />
-                  <v-list-item title="R18" value="r18" />
-                </v-list>
+              <v-select v-model="filterModel.mode" :items="filterModel.modeItems" :item-title="dis" :item-value="code">
               </v-select>
             </div>
           </v-sheet>
@@ -262,7 +257,7 @@
 
   // filter section
   let filterModel = {
-    mode: ref("all"),
+    mode: ref({dis:"All", code:"all"}),
     modeItems: [{dis: "All", code: "all"},{dis: "All ages", code: "safe"},{dis: "R18", code: "r18"}]
   }
 
@@ -292,10 +287,8 @@
       path: decodeURIComponent(to.fullPath.slice(8)),
       external: true
     }}
-    else {
-      a.value = pxurl(to.fullPath)
-      next()
-    }
+    a.value = pxurl(to.fullPath)
+    next()
   })
 
   const settingsD = ref(false)
@@ -324,7 +317,7 @@
     opacity: 0;
   }
   .uncolored-anchor {
-    color: white
+    color: var(--v-theme-on-surface)
   }
   .me > * {
     padding-left: 9px;

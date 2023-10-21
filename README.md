@@ -46,7 +46,7 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 
 # Before wandering around (project setup)
 - You need to set your pixiv instance's cookies to the site for the followimg features to work:
-+ everything
++ everything except playground (in most cases)
 
 UPDATE: cookies are now prompted if required cookie(s) is not set so use that
 
@@ -65,7 +65,7 @@ here's how you previously set your cookies after obtaining it:
   }
 </script>
 
-<template>
+ (in most cases)<template>
   <div>
     numero 5, smurf catto
   </div>
@@ -91,3 +91,9 @@ after setting cookies, refresh
   }
   ```
 - Always restart server when modifying composables, hmr doesn't work on my machine
+
+# TODO:
+- Download dialog
+- Ugoira download (as gif)
+- User dropdown
+- Finish `tags/`, `users/`, `bookmarks/`

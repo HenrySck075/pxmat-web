@@ -42,9 +42,11 @@
     <v-img style="border-radius: 4px; width=100vw" max-height=200px cover :src="proxyAssetUrl(tagMeta.pixpedia.image)"></v-img>
     <v-sheet rounded elevation="2">
       <div>
+        <NuxtLink :to="'/artworks/'+tagMeta.pixpedia.id">
         <div class="d-flex justify-center pt-6">
           <v-img style="border-radius: 4px" max-width="100px" cover aspect-ratio="1" class="justify-center" :src="proxyAssetUrl(tagMeta.pixpedia.image)"></v-img>
         </div>
+        </NuxtLink>
         <p class="text-h6 text-center">{{tagMeta.tag}}</p>
         <p style="color: gray; font-size: 12px" class="text-center">{{tagMeta.pixpedia.tag}}</p>
         <p class="text-subtitle-1 text-center">{{tagMeta.pixpedia.description}}</p>
