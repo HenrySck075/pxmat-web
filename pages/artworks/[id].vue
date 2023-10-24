@@ -11,6 +11,17 @@
 
   const illustData = await usePixivFetch(`/illust/${id}?ref=https://www.pixiv.net/en`,{method:"GET"})
   const userIllusts = Object.keys(illustData.userIllusts).sort(s)
+  useHead({
+    title: `${illustData.alt} - pixiv`
+  })
+
+  const proxyUrl = (a) => {
+    if (a === undefined) return ""
+    return a.replace("https:\/\/i.pximg.net","/pxugoira")
+  }
+  const proxyAssetUrl = useProxyURL
+
+
   const comments = ref([])
   const hasNext = ref(true)
   const chillBro = ref(false)
@@ -67,16 +78,6 @@
   }
 
   await loadRelated()
-
-  useHead({
-    title: `${illustData.alt} - pixiv`
-  })
-
-  const proxyUrl = (a) => {
-    if (a === undefined) return ""
-    return a.replace("https:\/\/i.pximg.net","/pxugoira")
-  }
-  const proxyAssetUrl = useProxyURL
 
   let current = userIllusts.indexOf(id) + 3
   let range = 9
@@ -143,15 +144,12 @@
   const fullImageLazy = ref("/facebook_male.png") // it does count
   const fIdx = ref(0)
 
-  let animDir = ref("normal")
-
   import {useDisplay} from "vuetify"
 
   const d = useDisplay()
 
   function openImage(img, idx) {
     if (illustData.illustType === 2) return
-    animDir.value = "normal"
     fullImage.value = proxyAssetUrl(img.urls.original)
     fullImageLazy.value = proxyAssetUrl(img.urls.small)
     mainStyle.value = "-20vh"
@@ -162,7 +160,6 @@
 
   function closeImage() {
     console.log("send help")
-    animDir.value = "reverse"
     mainStyle.value = "0vh"
     imgvStyle.value = "120vh"
     useQuery("view", null)
@@ -177,6 +174,7 @@
   }
 
   // promises hell
+  /**@param {Promise<Blob>} asyncblob*/
   function drawUgoiraFrame(asyncblob, ctx) {
     return () => {
       asyncblob.then(b=>{
@@ -185,12 +183,13 @@
     }
   }
 
+
   function callbackhell({data: lo, frames: f, canvasContext: ctx}) {
     // promises are just too funny sorry guys
-    console.log("smurf cat")
     import("jszip").then(zip=>{
       zip.loadAsync(lo).then(z=>{
         let dur = 0
+        /**@type {Record<string, Promise<blob>>}*/
         let frameblob = {}
         for (let i of f) {
           dur+=i.delay
@@ -209,10 +208,8 @@
     })
   }
 
-  let ugoiraSrc = ["", ""]
-  let ugoiraFrames = []
-
-  function loadUgoiraF() {
+  // stop making code unreadable please i beg you
+  function loadUgoiraF() { setTimeout(()=>{
     /**@type {HTMLCanvasElement}*/
     const canvas = document.querySelector("#ugoiraCanvas")
     const imageRect = document.querySelector("#illustImg").getBoundingClientRect()
@@ -220,7 +217,7 @@
     canvas.width = 0+imageRect.width
     canvas.height = 0+imageRect.height
     usePixivFetch("/illust/"+id+"/ugoira_meta", {method: "GET"}).then((resp) => {
-      ugoiraSrc = [resp.originalSrc, resp.src]
+      ugoiraSrc = [resp.src, resp.originalSrc]
       const src = proxyAssetUrl(resp.src)
 
       const frames = resp.frames
@@ -230,7 +227,7 @@
         jzutil.getBinaryContent(src, (e,n)=>{callbackhell({data: n, "frames": frames, "canvasContext": canvas.getContext("2d")})})
       })
     })
-  }
+  },500)}
 
   const uilSlideModel = ref(Object.keys(userIllustsData).findIndex(v=>v===id)) // actually it doesnt need to be ref since if it changes, user will be directed to a new artworks anyways
 
@@ -240,34 +237,6 @@
 
     import("image-conversion").then(imgConv=>{
       imgConv.imagetoCanvas(imgEl).then(i=>imgConv.canvastoFile(i, undefined, "image/png")).then(b=>imgConv.downloadFile(b, id+"_p"+fIdx.value+".png"))
-    })
-  }
-
-  async function ugoira2gif(srci = 1) {
-    Promise.all([import("jszip"), import("jszip-utils"), import("gif-encoder-2")]).then(([jszip,jzutil,gifenc])=>{
-      jzutil.getBinaryContent(ugoiraSrc[srci], async (e,n)=>{
-        const z = await jszip.loadAsync(n)
-        const [w,h] = ugoiraSrc[srci].slice(0,-4).split("_ugoira")[1].split("x")
-        const gif = new gifenc.GIFEncoder(+w,+h,"neuquant",false,ugoiraFrames.length)
-        const offscreen = new OffscreenCanvas(+w,+h)
-        const ctx = offscreen.getContext("2d")
-        gif.setFrameRate(30)
-        gif.start()
-        for (let i of ugoiraFrames) {
-          gif.setDelay(i.delay)
-          ctx.drawImage(await createImageBitmap(await z.file(i.file).async("blob")),0,0)
-          gif.addFrame(ctx)
-        }
-        gif.finish()
-        const link = document.createElement('a')
-        link.href = window.URL.createObjectURL(new Blob([gif.out.getData()]))
-        link.download = id+"_"+w+"x"+h+".gif"
-        document.body.appendChild(link)
-        const evt = document.createEvent('MouseEvents')
-        evt.initEvent('click', false, false)
-        link.dispatchEvent(evt)
-        document.body.removeChild(link)
-      })
     })
   }
 
@@ -302,9 +271,9 @@
         </v-sheet>
         <div>
           <template v-for="(i, idx) in images">
-            <v-img v-show="!loadUgoira" :src="proxyAssetUrl(i.urls[d.smAndDown ? 'small' : d.md ? 'medium' : 'large'])" max-height=1000px width=98% id=illustImg class="mt-2 mb-2" @click="(illustData.pageCount!=1 && !multiimaged) ? loadAllPage() : openImage(i, idx)" @load="(illustData.illustType === 2) ? (()=>{loadUgoiraF()})() : openImageP()"></v-img>
-          </template>
-          <div class="d-flex justify-center" v-show="loadUgoira">
+            <v-img v-show="!loadUgoira" :src="proxyAssetUrl(i.urls[illustData.illustType==2 ? 'regular' : d.smAndDown ? 'small' : d.md ? 'medium' : 'large'])" max-height=1000px width=98% id=illustImg class="mt-2 mb-2" @click="(illustData.pageCount!=1 && !multiimaged) ? loadAllPage() : openImage(i, idx)" @load="(illustData.illustType === 2) ? loadUgoiraF() : openImageP()"></v-img>
+          </template> 
+          <div class="d-flex justify-center align-center" v-show="loadUgoira">
             <canvas class="pt-2 pb-2" style="max-height: 1000px" id="ugoiraCanvas"></canvas>
           </div>
 
@@ -405,7 +374,6 @@
 <style>
   .t {
   	transition: top 0.4s, transform 0.4s; 
-    animation-direction: v-bind(animDir);
   }
 
   #imgv {

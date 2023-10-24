@@ -208,7 +208,7 @@
     let h = [
       "Flip the copyleft when you have the rights",
       "3/4 of pixiv is literally a php site it doesnt even transition",
-      "It's Geometry Dash 2.2 month wahoooo (October)",
+      "Geometry Dash 2.2 delayed to November sadly",
       "duh",
       "Powder that makes you say 'real'",
       "If you think you can just steal this and not telling me because there's no mention of reserving then you're blind, it's in the code itself."
