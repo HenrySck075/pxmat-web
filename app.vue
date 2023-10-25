@@ -45,7 +45,7 @@
             <v-list-item @click="toggleTheme()">
               <v-list-item-title>Switch to <span v-if=theme.global.current.value.dark>light</span><span v-else>dark</span> theme</v-list-item-title>
             </v-list-item>
-            <v-list-item @click="settingsD = true">
+            <v-list-item @click="configsD = true">
               <v-list-item-title>Settings</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -71,24 +71,29 @@
       </v-navigation-drawer>
 
       <v-main>
-        <!--Settings dialog-->
-        <v-dialog v-model="settingsD" width=98vw height=98vh>
-          <v-sheet rounded :elevation="2" class="pa-3" height=98vh>
-            <span class="text-h5">Settings</span>
-            <div style="overflow: auto; height: 81vh">
-              <p class="font-subtitle-1 pt-5">Language</p>
-              <v-select :items="langMap" v-model=settingsModel.langSelect item-title="dis" item-value="code"></v-select>
-              <p class="font-subtitle-1 pt-5">Chunked file download size</p>
-              <v-text-field v-model.trim="settingsModel.chunkSize" :rules="[validations.numberOnly]"></v-text-field>
-              <p class="font-subtitle-1 pt-5">Toggle options</p>
-              <v-switch v-model="settingsModel.toggle_redirect" label="Redirect to this site for every pixiv URLs on this site when clicking" title="(except for URLs in the bottom bar)"></v-switch>
-              <p class="font-subtitle-1 pt-5">Dangerous area or smth</p>
-              <p class="font-subtitle-1 font-weight-bold pt-5">Think twice before clicking!!!</p>
-              <v-btn color="#ff0000" @click="flushCookies()" >Delete all cookies</v-btn>
-            </div>
+        <!--configs dialog-->
+        <v-dialog v-model="configsD" width=98vw>
+          <v-sheet rounded :elevation="2" class="pa-3">
+            <v-expansion-panels>
+              <v-expansion-panel title="Client settings">
+                <v-expansion-panel-text>
+                  <div style="overflow: auto">
+                    <p class="font-subtitle-1 pt-5">Language</p>
+                    <v-select :items="langMap" v-model=configsModel.langSelect item-title="dis" item-value="code"></v-select>
+                    <p class="font-subtitle-1 pt-5">Chunked file download size</p>
+                    <v-text-field v-model.trim="configsModel.chunkSize" :rules="[validations.numberOnly]"></v-text-field>
+                    <p class="font-subtitle-1 pt-5">Toggle options</p>
+                    <v-switch v-model="configsModel.toggle_redirect" label="Redirect to this site for every pixiv URLs on this site when clicking" title="(except for URLs in the bottom bar)"></v-switch>
+                    <p class="font-subtitle-1 pt-5">Dangerous area or smth</p>
+                    <p class="font-subtitle-1 font-weight-bold pt-5">Think twice before clicking!!!</p>
+                    <v-btn color="#ff0000" @click="flushCookies()" >Delete all cookies</v-btn>
+                  </div>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
             <div class="d-flex justify-end" >
               <v-btn @click="apply()" :disabled="!modified_change">Apply</v-btn>
-              <v-btn @click="settingsD = false" color=background>Close</v-btn>
+              <v-btn @click="configsD = false" color=background>Close</v-btn>
             </div>
           </v-sheet>
         </v-dialog>
@@ -217,15 +222,15 @@
   })() 
 
   // setting section
-  const settingsModel = {
-    langSelect: ref(useLocalData("lang") ?? "en"),
-    chunkSize: ref(useLocalData("chunkSize") ?? "300000"),
+  let configs = useLocalData("config") ?? {lang:"en", chunkSize: "300000"}
+  const configsModel = {
+    langSelect: ref(configs.lang),
+    chunkSize: ref(configs.chunkSize),
     toggle_redirect: ref(true)
-
   }
   const modified_change = ref(false)
   function mumei(h,h2) {modified_change.value = true}
-  for (let i of Object.values(settingsModel)) {
+  for (let i of Object.values(configsModel)) {
     watch(i, mumei)
   }
   const validations = {
@@ -238,8 +243,9 @@
   const lang = ["en", "ja"]
 
   function apply() {
-    useLocalData("chunkSize", settingsModel.chunkSize)
-    useLocalData("lang", settingsModel.langSelect)
+    configs.chunkSize = settingsModel.chunkSize
+    configs.lang = settingsModel.langSelect
+    useLocalData("config", configs)
     modified_change.value = false
   }
 
@@ -251,7 +257,7 @@
       let d = useCookie(c)
       d.value = null
     }
-    settingsD.value = false
+    configsD.value = false
     cookieSet.value = false
   }
 
@@ -291,7 +297,7 @@
     next()
   })
 
-  const settingsD = ref(false)
+  const configsD = ref(false)
   const filterD = ref(false)
 </script>
 <style>

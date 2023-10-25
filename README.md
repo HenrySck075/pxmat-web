@@ -1,9 +1,13 @@
-real
-also hey this isnt a place to store your code henry
+# a project started out as an excuse to download cute vtubers pic
+see faq
+
+# Features 
+- Semi-completw Material Design (vuetify pls make v-dialog an actual md dialog impl (make custom using 'custom' instead))
+- Download image feature (ugoira isnt supported rn)
+- Keep alive everywhere (saves requests) !!!!
+- Duolingo
 
 # Nuxt Setup
-
-## Setup
 
 Make sure to install the dependencies:
 
@@ -92,8 +96,23 @@ after setting cookies, refresh
   ```
 - Always restart server when modifying composables, hmr doesn't work on my machine
 
+# FAQs
+# why the hell this exist nerd
+As the first header implies, it because:
+- download 
+- inconsistent UI (eg. color themes)
+- 3/4 of pixiv urls is a php file 
+- most url refresh when navigating
+
+
+# why is `artworks/[id]` so large
+I have skill issue.
+
+the only test case is readability and it failed.
+
+
 # TODO:
 - Download dialog
-- Ugoira download (as gif)
+- Change settings menu to include account settings
 - User dropdown
 - Finish `tags/`, `users/`, `bookmarks/`

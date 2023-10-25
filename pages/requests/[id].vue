@@ -1,13 +1,41 @@
 <script setup>
-  import storage from "nuxt-storage"
   const r = useRoute()
   const id = r.params.id
 
-  const req = storage.sessionStorage.getData("requests")[id]
-
+  /**@type {pxRequestFetchBody}*/
+  const data = await usePixivFetch("/commission/page/requests/"+id, {query: {refresh: false}}) 
+  const req = data.requests[0]
+  /**@type {Record<string,pxUser>}*/
+  const users = (()=>{
+    let h = {}
+    for (let i of data.users) {
+      h[i.userId] = i
+    }
+    return h
+  })()
   useHead({
-    title: "Send a request to "+""+" | pixiv Material Design Concept"
+    title: data.ogp.page_title + " Material Design Concept",
   })
+  const proxyURL = useProxyURL
+  /**git reference*/
+  let commitHistory = [
+    {
+      img: req.fanUserId ? proxyURL(users[req.fanUserId].image) : "/facebook_male.png",
+      content: (req.fanUserId ? '<span class="font-weight-bold" style="color: white">'+users[req.fanUserId].name+"</span>" : "An anonymous user") + " sent a request via "+req.plan.planTitle.planTranslationTitle[useLocalData("config").lang].planTitle,
+      // its twemoji
+      emojiUrl: "/pxsprites/special/twemoji-14.0.2/assets/72x72/1f48c.png"
+    }
+  ]
+
+  const gato = '<span class="font-weight-bold" style="color: white">'+users[req.fanUserId].name+"</span>"
+  // accept status can be not if the requester views the page 
+  if (req.plan.planAcceptRequestFlg) {
+    commitHistory.push({
+      img: users[req.creatorUserId].image,
+      content: geto + " accepted the request ",
+      emojiUrl: "/pxsprites/special/twemoji-14.0.2/assets/72x72/1f44d.png"
+    })
+  }
 </script>
 
 <template>
@@ -25,10 +53,18 @@
           </div>
         </div>
       </div>
-      <div>
-         Request history goes here
-         <Illust :data="req.illustData" />
-      </div>
+      <v-sheet elevation="2">
+        <div v-for="i in commitHistory" :key="i" class="pt-2 pl-4">
+          <div style="margin-right: 16px; display: block">
+            <v-avatar>
+              <v-img :src="i.img" :aspect-ratio="1" width="40px"></v-img>
+            </v-avatar>
+          </div>
+          <div style="min-width: 10em; flex: auto">
+            <span v-html="i.content+`<img src='${i.emoji}'></img>`"></span>
+          </div>
+        </div>
+      </v-sheet>
     </v-sheet>
   </div>
 </template>

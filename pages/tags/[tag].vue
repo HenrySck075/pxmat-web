@@ -36,6 +36,7 @@
     if (tabidx[path] > tabidx[tab.value]) tname.value="v-window-x-transition"
     navigateTo(dest)
   }
+  function filter(d) {}
 </script>
 <template>
   <div>

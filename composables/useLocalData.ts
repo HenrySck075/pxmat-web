@@ -4,7 +4,7 @@ import ns from "nuxt-storage"
 * Will return falsy value if value is not undefined*/
 export default function<Value>(name: string, value: Value | undefined): Value {
   if (value !== undefined) {
-    ns.localStorage.setData(name, value); 
+    ns.localStorage.setData(name, value, 3652, "d"); 
     return value
   }
   else {

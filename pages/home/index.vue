@@ -37,20 +37,6 @@
     return h
   })()
 
-  useSessionData("requests", (()=>{
-    let h = {}
-    for (let i of resp.requests) {
-      h[i.requestId] = {
-        ...i,
-        illustData: homeIllustData[i.postWork.postWorkId],
-        userPartial: {
-          requester: users[i.fanUserId] ?? null, // accessing undefined keys returns undefined so making it null is funnier
-          creator: users[i.creatorUserId]
-        }
-      }
-    }
-    return h
-  })())
 
   function toMonth(s) {
     switch (s) {
