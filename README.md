@@ -1,3 +1,5 @@
+i cant get the cookies works now im so over
+
 # a project started out as an excuse to download cute vtubers pic
 see faq
 

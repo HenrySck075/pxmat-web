@@ -2,7 +2,7 @@
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 export default defineNuxtConfig({
   css: ['vuetify/lib/styles/main.sass'],
-  modules: ["nuxt-proxy-request"],
+  // modules: ["nuxt-proxy-request"],
   build: {
     transpile: ['vuetify'],
   },
@@ -37,11 +37,21 @@ export default defineNuxtConfig({
             },
             headers: {
               'Referer': 'https://www.pixiv.net/en',
-              'X-User-Id': process.env.Pixiv_User_ID
+              'X-User-Id': process.env.Pixiv_User_ID,
+              'Host': 'www.pixiv.net',
+            },
+            onResponse(e,r) {
+              r.headers.delete('Set-Cookie') // were doing it in server who cares
+              console.log(r.headers.getSetCookie())
+              for (let i of r.headers.getSetCookie()) {
+                console.log(i)
+                r.headers.append('Set-Cookie',i.replace(/[s|S]ecure;/, ''))
+              }
+              e.respondWith(r)
             }
           }
         },
-        enableLogger: false
+        enableLogger: true
       },
       {
         target: "https://i.pximg.net",
@@ -68,7 +78,7 @@ export default defineNuxtConfig({
             }
           }
         },
-        enableLogger: false
+        enableLogger: true
       },
       {
         target: "https://s.pximg.net",
@@ -82,7 +92,7 @@ export default defineNuxtConfig({
             }
           }
         },
-        enableLogger: false
+        enableLogger: true
       }
     ]
   },

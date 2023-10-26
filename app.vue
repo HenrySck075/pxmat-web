@@ -72,22 +72,38 @@
 
       <v-main>
         <!--configs dialog-->
-        <v-dialog v-model="configsD" width=98vw>
-          <v-sheet rounded :elevation="2" class="pa-3">
+        <v-dialog v-model="configsD" width=98vw max-height="98wh">
+          <v-sheet rounded :elevation="2" class="pa-2">
             <v-expansion-panels>
               <v-expansion-panel title="Client settings">
                 <v-expansion-panel-text>
-                  <div style="overflow: auto">
-                    <p class="font-subtitle-1 pt-5">Language</p>
-                    <v-select :items="langMap" v-model=configsModel.langSelect item-title="dis" item-value="code"></v-select>
-                    <p class="font-subtitle-1 pt-5">Chunked file download size</p>
-                    <v-text-field v-model.trim="configsModel.chunkSize" :rules="[validations.numberOnly]"></v-text-field>
-                    <p class="font-subtitle-1 pt-5">Toggle options</p>
-                    <v-switch v-model="configsModel.toggle_redirect" label="Redirect to this site for every pixiv URLs on this site when clicking" title="(except for URLs in the bottom bar)"></v-switch>
-                    <p class="font-subtitle-1 pt-5">Dangerous area or smth</p>
-                    <p class="font-subtitle-1 font-weight-bold pt-5">Think twice before clicking!!!</p>
-                    <v-btn color="#ff0000" @click="flushCookies()" >Delete all cookies</v-btn>
-                  </div>
+                  <p class="font-subtitle-1 pt-5">Language</p>
+                  <v-select :items="langMap" v-model=configsModel.langSelect item-title="dis" item-value="code"></v-select>
+                  <p class="font-subtitle-1 pt-5">Chunked file download size</p>
+                  <v-text-field v-model.trim="configsModel.chunkSize" :rules="[validations.numberOnly]"></v-text-field>
+                  <p class="font-subtitle-1 pt-5">Toggle options</p>
+                  <v-switch v-model="configsModel.toggle_redirect" label="Redirect to this site for every pixiv URLs on this site when clicking" title="(except for URLs in the bottom bar)"></v-switch>
+                  <p class="font-subtitle-1 pt-5">Dangerous area or smth</p>
+                  <p class="font-subtitle-1 font-weight-bold pt-5">Think twice before clicking!!!</p>
+                  <v-btn color="#ff0000" @click="flushCookies()" >Delete all cookies</v-btn>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+              <v-expansion-panel title="Account settings">
+                <v-expansion-panel-text>
+                  <v-tabs v-model="accountTab">
+                    <v-tab value="u">User</v-tab>
+                    <v-tab value="n">Notification</v-tab>
+                    <v-tab value="m">Message</v-tab>
+                    <v-tab value="f">Feed</v-tab>
+                    <v-tab value="s">Mute</v-tab> <!-- what is this-->
+                  </v-tabs>
+                  <v-window v-model="accountTab">
+                    <v-window-item value="u">:D</v-window-item>
+                    <v-window-item value="n">:D</v-window-item>
+                    <v-window-item value="m">:D</v-window-item>
+                    <v-window-item value="f">:D</v-window-item>
+                    <v-window-item value="s">:D</v-window-item>
+                  </v-window>
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
@@ -126,21 +142,19 @@
               <v-btn block :disabled="cooking" :loading=cooking type="submit" color="primary">Submit</v-btn>
             </v-row>
             <v-row>
-              <v-col style="width: 94vw">
-                <span class="font-weight-bold text-h4" id="cookieHow">How to obtain cookie</span>
-                <v-icon size="16px" icon="mdi-menu-down-outline" @click="cookieHow = !cookieHow"></v-icon>
-                <v-expand-transition>
-                  <!--content/ exists-->
-                  <v-sheet v-show="cookieHow" width=100%>
+              <v-expansion-panels>
+                <v-expansion-panel title="How to obtain cookie">
+                  <v-expansion-panel-text>
+                    <!--content/ exists-->
                     <span class="font-weight-bold">Step 1:</span>
                     <span>Go to <NuxtLink to="https://www.pixiv.net/en?pxmat_force_redirect=1">pixiv.net</NuxtLink>, type </span><span style="font-family: monospace, monospace">javascript:</span> <span>in address bar and paste the following text:</span>
                     <p style="font-family: monospace, monospace; background-color: bg-background">setTimeout(()=&gt;navigator.clipboard.writeText(document.cookie),3000)</p>
                     
                     <span class="font-weight-bold">Step 2:</span>
                     <p>Paste to da box</p>
-                  </v-sheet>
-                </v-expand-transition>
-              </v-col>
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+              </v-expansion-panels>
             </v-row>
           </v-container>
         </v-form>
@@ -167,10 +181,11 @@
   </v-sheet>
 </template>
 <script setup>
+  const accountTab = ref(null)
   // moar stuff
   const page = ref()
   const updateFilter = computed(()=>page.value?.filter)
-  const cookieSet = ref(!!useCookie("__utmv", {default: ()=>null}).value)
+  const cookieSet = ref(!!useCookie("yuid_b", {default: ()=>null}).value)
 
   let h = {}
   let model = ref("")
@@ -338,5 +353,11 @@
     display: none; /* Chrome opera and Safary */
     width: 0px;
     background: transparent;
+  }
+  table, tr, th {
+    border: 0
+  }
+  table#accSetting th:first-child {
+    font-weight: bold
   }
 </style>
